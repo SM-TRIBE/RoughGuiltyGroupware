@@ -1,69 +1,88 @@
-
-<old_str>
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import ContextTypes
-from utils.tools import load_json, save_json
-import random
-
-async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [KeyboardButton("🔔 اعلانات"), KeyboardButton("🌙 حالت شب")],
-        [KeyboardButton("🔒 حریم خصوصی"), KeyboardButton("🎵 صدا")],
-        [KeyboardButton("🏠 بازگشت به منو اصلی")]
-    ]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    
-    await update.message.reply_text(
-        "⚙️ تنظیمات\n\nاینجا می‌توانید تنظیمات بازی را تغییر دهید.",
-        reply_markup=reply_markup
-    )
-
-async def help_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    help_text = """
-❓ راهنمای بازی
-
-🎮 اصول بازی:
-• ابتدا پروفایل خود را کامل کنید
-• از کار کردن پول درآوری کنید
-• مهارت‌هایتان را افزایش دهید
-• با سایر بازیکنان ارتباط برقرار کنید
-
-💰 اقتصاد:
-• هر روز جایزه روزانه دریافت کنید
-• در شانس‌آزمایی شرکت کنید
-• پول به دوستان انتقال دهید
-
-⚔️ ماجراجویی:
-• در سیاه‌چال‌ها مبارزه کنید
-• ماموریت‌ها را انجام دهید
-• آیتم‌های ارزشمند جمع کنید
-
-👥 اجتماعی:
-• دوست پیدا کنید
-• با سایرین چت کنید
-• هدیه ارسال کنید
-
-برای کمک بیشتر با مدیران تماس بگیرید.
-    """
-    
-    await update.message.reply_text(help_text)
-
-async def notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔔 تنظیمات اعلانات - در حال توسعه")
-
-async def night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🌙 حالت شب - در حال توسعه")
-
-async def privacy(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔒 حریم خصوصی - در حال توسعه")
-
-async def sound_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🎵 تنظیمات صدا - در حال توسعه")</old_str>
-<new_str>
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from utils.tools import load_json, save_json
 import random
+
+async def handle_missing_feature(update: Update, context: ContextTypes.DEFAULT_TYPE, feature_name: str):
+    """Handle features that are not yet implemented"""
+    await update.message.reply_text(
+        f"🚧 {feature_name}\n\n"
+        f"این قابلیت در حال توسعه است و به زودی اضافه خواهد شد!\n"
+        f"لطفاً صبور باشید."
+    )
+
+async def dungeon_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [KeyboardButton("🗡️ ورود به سیاه‌چال"), KeyboardButton("⚔️ نبرد با هیولا")],
+        [KeyboardButton("🛡️ خرید تجهیزات"), KeyboardButton("💎 جستجوی گنج")],
+        [KeyboardButton("🏠 بازگشت به منو اصلی")]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+    await update.message.reply_text(
+        "🏰 سیاه‌چال‌های مرموز\n\n"
+        "به دنیای ماجراجویی خوش آمدید!\n"
+        "اینجا می‌توانید با هیولاها بجنگید و گنج پیدا کنید.",
+        reply_markup=reply_markup
+    )
+
+async def job_system(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    players = load_json("data/players.json")
+    uid = str(user.id)
+
+    if uid not in players:
+        await update.message.reply_text("لطفاً ابتدا /start کنید.")
+        return
+
+    keyboard = [
+        [KeyboardButton("💼 مشاهده مشاغل"), KeyboardButton("⚡ کار کردن")],
+        [KeyboardButton("📈 ارتقاء شغل"), KeyboardButton("💰 درآمد روزانه")],
+        [KeyboardButton("🏠 بازگشت به منو اصلی")]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+    p = players[uid]
+    current_job = p.get('job', 'بیکار')
+
+    await update.message.reply_text(
+        f"💼 مرکز کاریابی\n\n"
+        f"شغل فعلی: {current_job}\n"
+        f"درآمد کل: {p.get('total_earnings', 0):,} تومان\n\n"
+        f"اینجا می‌توانید شغل خود را انتخاب کنید.",
+        reply_markup=reply_markup
+    )
+
+async def minigames_system(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [KeyboardButton("🎲 تاس‌بازی"), KeyboardButton("🃏 بلک‌جک")],
+        [KeyboardButton("🧩 حدس عدد"), KeyboardButton("🎮 بازی حافظه")],
+        [KeyboardButton("🎯 تیراندازی"), KeyboardButton("🎰 اسلات")],
+        [KeyboardButton("🏠 بازگشت به منو اصلی")]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+    await update.message.reply_text(
+        "🎮 مرکز بازی‌ها\n\n"
+        "به مرکز سرگرمی خوش آمدید!\n"
+        "اینجا می‌توانید بازی کنید و جایزه ببرید.",
+        reply_markup=reply_markup
+    )
+
+async def gambling_system(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [KeyboardButton("🎰 شانس‌آزمایی"), KeyboardButton("🎲 قمار تاس")],
+        [KeyboardButton("🃏 پوکر"), KeyboardButton("💰 شرط‌بندی")],
+        [KeyboardButton("🏠 بازگشت به منو اصلی")]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+    await update.message.reply_text(
+        "🎰 کازینو\n\n"
+        "⚠️ توجه: قمار می‌تواند اعتیادآور باشد!\n"
+        "با احتیاط بازی کنید.",
+        reply_markup=reply_markup
+    )
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -73,7 +92,7 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [KeyboardButton("🏠 بازگشت به منو اصلی")]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    
+
     await update.message.reply_text(
         "⚙️ تنظیمات\n\nاینجا می‌توانید تنظیمات بازی را تغییر دهید.",
         reply_markup=reply_markup
@@ -124,24 +143,24 @@ async def help_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 برای کمک بیشتر با مدیران تماس بگیرید.
     """
-    
+
     keyboard = [
         [KeyboardButton("🎮 راهنمای کوتاه"), KeyboardButton("💡 نکات مفید")],
         [KeyboardButton("🏠 بازگشت به منو اصلی")]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    
+
     await update.message.reply_text(help_text, reply_markup=reply_markup)
 
 async def notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json('data/players.json')
     uid = str(user.id)
-    
+
     if uid not in players:
         await update.message.reply_text("ابتدا /start کنید")
         return
-    
+
     p = players[uid]
     notifications_settings = p.get('notifications', {
         'daily_reward': True,
@@ -150,7 +169,7 @@ async def notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'level_up': True,
         'work_available': True
     })
-    
+
     keyboard = [
         [InlineKeyboardButton(
             f"{'✅' if notifications_settings['daily_reward'] else '❌'} جایزه روزانه",
@@ -174,9 +193,9 @@ async def notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )],
         [InlineKeyboardButton("🔙 بازگشت", callback_data="back_settings")]
     ]
-    
+
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "🔔 تنظیمات اعلانات\n\n"
         "روی هر گزینه کلیک کنید تا فعال/غیرفعال شود:",
@@ -187,14 +206,14 @@ async def night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json('data/players.json')
     uid = str(user.id)
-    
+
     if uid not in players:
         await update.message.reply_text("ابتدا /start کنید")
         return
-    
+
     p = players[uid]
     night_mode = p.get('night_mode', False)
-    
+
     keyboard = [
         [InlineKeyboardButton(
             "🌙 فعال کردن حالت شب" if not night_mode else "☀️ غیرفعال کردن حالت شب",
@@ -202,11 +221,11 @@ async def night_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )],
         [InlineKeyboardButton("🔙 بازگشت", callback_data="back_settings")]
     ]
-    
+
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     status = "فعال 🌙" if night_mode else "غیرفعال ☀️"
-    
+
     await update.message.reply_text(
         f"🌙 حالت شب\n\n"
         f"وضعیت فعلی: {status}\n\n"
@@ -218,11 +237,11 @@ async def privacy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json('data/players.json')
     uid = str(user.id)
-    
+
     if uid not in players:
         await update.message.reply_text("ابتدا /start کنید")
         return
-    
+
     p = players[uid]
     privacy_settings = p.get('privacy_settings', {
         'allow_friend_requests': True,
@@ -231,7 +250,7 @@ async def privacy(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'show_location': True,
         'allow_dating': True
     })
-    
+
     keyboard = [
         [InlineKeyboardButton(
             f"{'✅' if privacy_settings['allow_friend_requests'] else '❌'} درخواست دوستی",
@@ -255,9 +274,9 @@ async def privacy(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )],
         [InlineKeyboardButton("🔙 بازگشت", callback_data="back_settings")]
     ]
-    
+
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "🔒 تنظیمات حریم خصوصی\n\n"
         "با کلیک روی هر گزینه، آن را فعال/غیرفعال کنید:",
@@ -268,11 +287,11 @@ async def sound_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json('data/players.json')
     uid = str(user.id)
-    
+
     if uid not in players:
         await update.message.reply_text("ابتدا /start کنید")
         return
-    
+
     p = players[uid]
     sound_settings = p.get('sound_settings', {
         'music': True,
@@ -280,7 +299,7 @@ async def sound_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'notifications': True,
         'volume': 50
     })
-    
+
     keyboard = [
         [InlineKeyboardButton(
             f"{'🎵' if sound_settings['music'] else '🔇'} موسیقی",
@@ -298,9 +317,9 @@ async def sound_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
          InlineKeyboardButton("🔊 زیاد کردن صدا", callback_data="volume_up")],
         [InlineKeyboardButton("🔙 بازگشت", callback_data="back_settings")]
     ]
-    
+
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         f"🎵 تنظیمات صدا\n\n"
         f"🔊 حجم صدا: {sound_settings['volume']}%\n"
@@ -328,7 +347,7 @@ async def quick_guide(update: Update, context: ContextTypes.DEFAULT_TYPE):
 • ماموریت‌ها انجام بده
 • سطحت را بالا ببر
     """
-    
+
     await update.message.reply_text(guide_text)
 
 async def useful_tips(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -357,7 +376,7 @@ async def useful_tips(update: Update, context: ContextTypes.DEFAULT_TYPE):
 • هدیه بده تا محبوب‌تر شوی
 • در گروه‌ها فعال باش
     """
-    
+
     await update.message.reply_text(tips_text)
 
 async def reset_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -365,9 +384,9 @@ async def reset_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("⚠️ بله، بازنشانی کن!", callback_data="confirm_reset")],
         [InlineKeyboardButton("❌ انصراف", callback_data="cancel_reset")]
     ]
-    
+
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "⚠️ بازنشانی بازی\n\n"
         "🚨 هشدار: این عمل همه پیشرفت شما را پاک می‌کند!\n\n"
@@ -404,76 +423,76 @@ async def about_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 🙏 از بازی کردن سپاسگزاریم!
     """
-    
+
     await update.message.reply_text(about_text)
 
 async def handle_settings_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    
+
     user = query.from_user
     uid = str(user.id)
     players = load_json('data/players.json')
-    
+
     if uid not in players:
         await query.edit_message_text("ابتدا /start کنید")
         return
-    
+
     p = players[uid]
     data = query.data
-    
+
     if data.startswith("toggle_notif_"):
         setting = data.replace("toggle_notif_", "")
         if 'notifications' not in p:
             p['notifications'] = {}
-        
+
         current = p['notifications'].get(setting, True)
         p['notifications'][setting] = not current
         save_json('data/players.json', players)
-        
+
         await notifications(query, context)
-        
+
     elif data == "toggle_night_mode":
         p['night_mode'] = not p.get('night_mode', False)
         save_json('data/players.json', players)
         await night_mode(query, context)
-        
+
     elif data.startswith("toggle_privacy_"):
         setting = data.replace("toggle_privacy_", "")
         if 'privacy_settings' not in p:
             p['privacy_settings'] = {}
-        
+
         current = p['privacy_settings'].get(setting, True)
         p['privacy_settings'][setting] = not current
         save_json('data/players.json', players)
-        
+
         await privacy(query, context)
-        
+
     elif data.startswith("toggle_sound_"):
         setting = data.replace("toggle_sound_", "")
         if 'sound_settings' not in p:
             p['sound_settings'] = {}
-        
+
         current = p['sound_settings'].get(setting, True)
         p['sound_settings'][setting] = not current
         save_json('data/players.json', players)
-        
+
         await sound_settings(query, context)
-        
+
     elif data == "volume_up":
         if 'sound_settings' not in p:
             p['sound_settings'] = {'volume': 50}
         p['sound_settings']['volume'] = min(100, p['sound_settings'].get('volume', 50) + 10)
         save_json('data/players.json', players)
         await sound_settings(query, context)
-        
+
     elif data == "volume_down":
         if 'sound_settings' not in p:
             p['sound_settings'] = {'volume': 50}
         p['sound_settings']['volume'] = max(0, p['sound_settings'].get('volume', 50) - 10)
         save_json('data/players.json', players)
         await sound_settings(query, context)
-        
+
     elif data == "confirm_reset":
         # Reset user data but keep basic info
         basic_info = {
@@ -485,21 +504,21 @@ async def handle_settings_callback(update: Update, context: ContextTypes.DEFAULT
             'photo_id': p['photo_id'],
             'approved': True
         }
-        
+
         from utils.tools import init_player
         new_player = init_player(p['telegram_id'], p['name'], p['age'])
         new_player.update(basic_info)
-        
+
         players[uid] = new_player
         save_json('data/players.json', players)
-        
+
         await query.edit_message_text(
             "✅ بازی شما با موفقیت بازنشانی شد!\n"
             "از /start استفاده کنید تا دوباره شروع کنید."
         )
-        
+
     elif data == "cancel_reset":
         await query.edit_message_text("❌ بازنشانی لغو شد.")
-        
+
     elif data == "back_settings":
-        await settings(query, context)</new_str>
+        await settings(query, context)

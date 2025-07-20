@@ -1,58 +1,54 @@
-
 [
   {
-    "id": "sara",
     "name": "سارا",
-    "description": "دختری زیبا و باهوش از تهران",
+    "description": "دختری زیبا و باهوش با علاقه به هنر و ادبیات",
     "charisma": 8,
     "intelligence": 7,
-    "preferred_locations": ["کافه‌ی ادبی", "پارک لاله"],
+    "age": 23,
+    "interests": [
+      "هنر",
+      "ادبیات",
+      "سینما"
+    ],
     "available": true
   },
   {
-    "id": "reza",
-    "name": "رضا",
-    "description": "پسری ورزشکار و مهربان",
+    "name": "علی",
+    "description": "پسری مهربان و ورزشکار با شخصیتی گرم",
     "charisma": 7,
     "intelligence": 6,
-    "strength": 9,
-    "preferred_locations": ["باشگاه ورزشی", "پارک لاله"],
+    "age": 25,
+    "interests": [
+      "ورزش",
+      "موسیقی",
+      "طبیعت"
+    ],
     "available": true
   },
   {
-    "id": "maryam",
     "name": "مریم",
-    "description": "هنرمندی خلاق و روشنفکر",
+    "description": "دکتری جوان و پرانرژی با علاقه به علم",
     "charisma": 9,
-    "intelligence": 8,
-    "preferred_locations": ["کافه‌ی ادبی", "بازار تجریش"],
-    "available": true
-  },
-  {
-    "id": "ali",
-    "name": "علی",
-    "description": "مهندسی با شخصیت جذاب",
-    "charisma": 6,
     "intelligence": 9,
-    "preferred_locations": ["دانشگاه تهران", "کافه‌ی ادبی"],
+    "age": 27,
+    "interests": [
+      "علم",
+      "کتاب",
+      "سفر"
+    ],
     "available": true
   },
   {
-    "id": "zahra",
-    "name": "زهرا",
-    "description": "پزشکی مهربان و دلسوز",
+    "name": "رضا",
+    "description": "هنرمندی خلاق با روحی آزاد",
     "charisma": 8,
-    "intelligence": 9,
-    "preferred_locations": ["پارک لاله", "کافه‌ی ادبی"],
-    "available": true
-  },
-  {
-    "id": "hassan",
-    "name": "حسن",
-    "description": "بازرگانی موفق و باتجربه",
-    "charisma": 7,
     "intelligence": 8,
-    "preferred_locations": ["هتل پارس", "پاساژ علاءالدین"],
+    "age": 24,
+    "interests": [
+      "نقاشی",
+      "موسیقی",
+      "فلسفه"
+    ],
     "available": true
   }
 ]

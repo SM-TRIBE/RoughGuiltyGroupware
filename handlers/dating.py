@@ -1,4 +1,5 @@
 
+
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from utils.tools import load_json, save_json
@@ -74,6 +75,33 @@ async def find_partner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(user.id)
     
     p = players[uid]
+    
+    # Create some default partners if none exist
+    if not partners:
+        partners = [
+            {
+                "name": "سارا",
+                "description": "دختری زیبا و باهوش با علاقه به هنر",
+                "charisma": 8,
+                "intelligence": 7,
+                "available": True
+            },
+            {
+                "name": "علی",
+                "description": "پسری مهربان و ورزشکار",
+                "charisma": 7,
+                "intelligence": 6,
+                "available": True
+            },
+            {
+                "name": "مریم",
+                "description": "دکتری جوان و پرانرژی",
+                "charisma": 9,
+                "intelligence": 9,
+                "available": True
+            }
+        ]
+        save_json("data/partners.json", partners)
     
     # Find compatible partners based on user's traits
     compatible_partners = []
@@ -313,6 +341,20 @@ async def dating_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🏆 رتبه شما: {get_dating_rank(stats['dating_level'])}"
     )
 
+async def smart_matchmaker(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🎯 ماچ‌میکر هوشمند\n\n"
+        "🔍 در حال جستجوی بهترین شریک برای شما...\n"
+        "💫 این قابلیت به زودی اضافه خواهد شد!"
+    )
+
+async def relationship_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "💔 تاریخچه روابط\n\n"
+        "📜 سابقه روابط عاشقانه شما اینجا نمایش داده خواهد شد.\n"
+        "💫 این قابلیت به زودی اضافه خواهد شد!"
+    )
+
 def calculate_compatibility(user, partner):
     """Calculate compatibility between user and NPC partner"""
     user_charisma = user.get('traits', {}).get('charisma', 5)
@@ -382,6 +424,8 @@ async def handle_dating_callback(update: Update, context: ContextTypes.DEFAULT_T
     elif data.startswith("buy_dating_gift_"):
         gift_name = data.replace("buy_dating_gift_", "")
         await buy_dating_gift(query, context, gift_name)
+    elif data == "back_dating":
+        await query.message.delete()
 
 async def start_date(query, context):
     user = query.from_user
@@ -408,17 +452,81 @@ async def start_date(query, context):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(text, reply_markup=reply_markup)
 
-# Add remaining dating functions...
-async def smart_matchmaker(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🎯 ماچ‌میکر هوشمند\n\n"
-        "🔍 در حال جستجوی بهترین شریک برای شما...\n"
-        "💫 این قابلیت به زودی اضافه خواهد شد!"
+async def view_partner_details(query, context):
+    current_match = context.user_data.get('current_match')
+    if not current_match:
+        await query.edit_message_text("❌ خطا: اطلاعات شریک یافت نشد!")
+        return
+    
+    details = f"👤 جزئیات {current_match['name']}:\n\n"
+    details += f"📝 توضیحات: {current_match['description']}\n"
+    details += f"⭐ جذابیت: {current_match.get('charisma', 5)}/10\n"
+    details += f"🧠 هوش: {current_match.get('intelligence', 5)}/10\n"
+    details += f"💫 سازگاری با شما: {current_match['compatibility']*100:.0f}%\n"
+    
+    keyboard = [
+        [InlineKeyboardButton("💕 علاقه‌مندم", callback_data="date_interested")],
+        [InlineKeyboardButton("❌ نه ممنون", callback_data="date_pass")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(details, reply_markup=reply_markup)
+
+async def pass_partner(query, context):
+    await query.edit_message_text(
+        "❌ شریک رد شد!\n"
+        "💕 با دکمه 'جستجوی شریک' می‌توانید دوباره تلاش کنید."
     )
 
-async def relationship_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "💔 تاریخچه روابط\n\n"
-        "📜 سابقه روابط عاشقانه شما اینجا نمایش داده خواهد شد.\n"
-        "💫 این قابلیت به زودی اضافه خواهد شد!"
+async def send_dating_gift_menu(query, context):
+    await query.edit_message_text(
+        "🎁 قابلیت ارسال هدیه به زودی اضافه خواهد شد!"
     )
+
+async def start_online_date(query, context, partner_id):
+    await query.edit_message_text(
+        f"💕 قرار آنلاین با کاربر {partner_id}\n"
+        "💫 این قابلیت به زودی توسعه خواهد یافت!"
+    )
+
+async def buy_dating_gift(query, context, gift_name):
+    user = query.from_user
+    players = load_json("data/players.json")
+    uid = str(user.id)
+    
+    if uid not in players:
+        await query.edit_message_text("❌ خطا: اطلاعات کاربر یافت نشد!")
+        return
+    
+    p = players[uid]
+    money = p.get('money', 0)
+    
+    if gift_name in DATING_GIFTS:
+        cost = DATING_GIFTS[gift_name]['cost']
+        if money >= cost:
+            p['money'] = money - cost
+            if 'inventory' not in p:
+                p['inventory'] = []
+            p['inventory'].append(gift_name)
+            
+            # Update dating stats
+            if 'dating_stats' not in p:
+                p['dating_stats'] = {'gifts_given': 0}
+            p['dating_stats']['gifts_given'] = p['dating_stats'].get('gifts_given', 0) + 1
+            
+            players[uid] = p
+            save_json("data/players.json", players)
+            
+            await query.edit_message_text(
+                f"✅ {gift_name} خریداری شد!\n"
+                f"💰 پول باقی‌مانده: {p['money']:,} تومان"
+            )
+        else:
+            await query.edit_message_text(
+                f"❌ پول کافی ندارید!\n"
+                f"💰 نیاز: {cost:,} تومان\n"
+                f"💳 دارید: {money:,} تومان"
+            )
+    else:
+        await query.edit_message_text("❌ هدیه یافت نشد!")
+

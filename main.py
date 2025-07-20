@@ -1,14 +1,12 @@
-from handlers.god import god_broadcast
 import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
-from config import BOT_TOKEN
-from utils.tools import load_json, save_json, init_player
+from config import BOT_TOKEN, ADMIN_ID
+from utils.tools import load_json, save_json
 
 # Import all handlers
 from handlers import start, profile, admin, zones, shop, marriage, leaderboard, economy
 from handlers import chat, hotel, jobs, rpg, god, achievements, minigames, social
-from handlers import missing_handlers, dating
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -55,12 +53,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await god.handle_broadcast_input(update, context):
         return
 
+    # Handle profile editing first
+    if context.user_data.get('edit_mode'):
+        if await profile.process_profile_edit(update, context):
+            return
+    
     # Main menu navigation
     if text == "👤 پروفایل":
         await profile.profile(update, context)
+    elif text == "✏️ ویرایش پروفایل":
+        await profile.edit_profile(update, context)
+    elif text in ["📝 تغییر توضیحات", "🏷️ تغییر نام", "🎂 تغییر سن", "📸 تغییر عکس"]:
+        await profile.handle_profile_edit(update, context)
     elif text == "🗺️ اکتشاف" or text == "🗺️ سفر":
         await zones.travel(update, context)
-    # Shop
     elif text == "🛍️ فروشگاه":
         await shop.shop(update, context)
     elif text == "💼 کار":
@@ -92,61 +98,44 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text == "👑 حالت خدا":
         await god.god_menu(update, context)
     elif text == "💕 دیتینگ":
-        await social.dating_menu(update, context)
+        from handlers import dating
+        await dating.dating_menu(update, context)
+    elif text == "💕 جستجوی شریک":
+        from handlers import dating
+        await dating.find_partner(update, context)
+    elif text == "📱 دیتینگ آنلاین":
+        from handlers import dating
+        await dating.online_dating(update, context)
+    elif text == "💝 خرید هدیه":
+        from handlers import dating
+        await dating.dating_gifts(update, context)
+    elif text == "🌟 پروفایل دیتینگ":
+        from handlers import dating
+        await dating.dating_profile(update, context)
+    elif text == "💬 چت عاشقانه":
+        from handlers import dating
+        await dating.dating_chat(update, context)
+    elif text == "📊 آمار قرارها":
+        from handlers import dating
+        await dating.dating_stats(update, context)
+    elif text == "🎯 ماچ‌میکر هوشمند":
+        from handlers import dating
+        await dating.smart_matchmaker(update, context)
+    elif text == "💔 تاریخچه روابط":
+        from handlers import dating
+        await dating.relationship_history(update, context)
     elif text == "🏛️ معبد":
         await god.temple_menu(update, context)
     elif text == "⚡ انتخاب پیامبر جدید":
         await god.select_prophet(update, context)
     elif text == "🔮 مدیریت پیامبران":
         await god.manage_prophets(update, context)
-
-    # Profile editing and god features
-    elif text == "✏️ ویرایش پروفایل":
-        await profile.edit_profile(update, context)
     elif text == "✏️ ویرایش فرمان":
-        await profile.edit_profile(update, context)
+        if user.id == ADMIN_ID:
+            context.user_data['edit_mode'] = 'bio'
+            await update.message.reply_text("📜 فرمان جدید خدایی را بنویسید:")
     elif text == "🔮 انتخاب پیامبر":
-        await profile.select_prophet(update, context)
-    elif text == "👥 لیست پیامبران":
-        await profile.select_prophet(update, context)
-    elif text == "❌ برکناری پیامبر":
-        await profile.dismiss_prophet(update, context)
-    elif text.startswith("پیامبر "):
-        handled = await profile.handle_prophet_command(update, context)
-        if not handled:
-            await update.message.reply_text("فرمت نادرست!")
-    elif text.startswith("برکناری "):
-        handled = await profile.handle_dismiss_command(update, context)
-        if not handled:
-            await update.message.reply_text("فرمت نادرست!")
-    elif text in ["📝 تغییر توضیحات", "🏷️ تغییر نام", "🎂 تغییر سن", "📸 تغییر عکس"]:
-        await profile.handle_profile_edit(update, context)
-    elif context.user_data.get('edit_mode'):
-        handled = await profile.process_profile_edit(update, context)
-        if not handled:
-            await update.message.reply_text("پیام نامشخص. لطفاً از منو استفاده کنید.")
-
-    # Settings and help
-    elif text == "⚙️ تنظیمات":
-        await missing_handlers.settings(update, context)
-    elif text == "❓ راهنما":
-        await missing_handlers.help_menu(update, context)
-    elif text == "🔔 اعلانات":
-        await missing_handlers.notifications(update, context)
-    elif text == "🌙 حالت شب":
-        await missing_handlers.night_mode(update, context)
-    elif text == "🔒 حریم خصوصی":
-        await missing_handlers.privacy(update, context)
-    elif text == "🎵 صدا":
-        await missing_handlers.sound_settings(update, context)
-    elif text == "🔄 بازنشانی بازی":
-        await missing_handlers.reset_game(update, context)
-    elif text == "📱 درباره بازی":
-        await missing_handlers.about_game(update, context)
-    elif text == "🎮 راهنمای کوتاه":
-        await missing_handlers.quick_guide(update, context)
-    elif text == "💡 نکات مفید":
-        await missing_handlers.useful_tips(update, context)
+        await god.select_prophet(update, context)
 
     # Job center navigation
     elif text == "💼 مشاهده مشاغل":
@@ -281,20 +270,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text in ["💥 انفجار قدرت", "🌪️ طوفان جادویی", "✨ معجزه شفا", "🔥 آتش خدایی", "❄️ یخبندان ابدی", "⚡ صاعقه مهیب", "🌈 پل رنگین‌کمان", "🕳️ سیاه‌چاله", "🔄 بازگردان زمان"]:
         await god.handle_god_power(update, context)
 
-    # Shop
-    elif text == "🛍️ فروشگاه":
-        await shop.shop(update, context)
-    elif text == "🛒 آیتم‌های عمومی":
-        await shop.general_items(update, context)
-    elif text == "⚡ آیتم‌های انرژی":
-        await shop.energy_items(update, context)
-    elif text == "💪 آیتم‌های مهارتی":
-        await shop.skill_items(update, context)
-    elif text == "💎 آیتم‌های لوکس":
-        await shop.luxury_items(update, context)
-    elif text == "🎒 کیف من":
-        await shop.my_inventory(update, context)
-
     # Back to main menu
     elif text == "🏠 بازگشت به منو اصلی":
         await start.show_main_square(update, context)
@@ -382,6 +357,11 @@ def main():
     # Callback query handlers
     app.add_handler(CallbackQueryHandler(start.approve_user, pattern="^(approve|reject|details)_"))
     app.add_handler(CallbackQueryHandler(shop.buy_item, pattern="^buy_"))
+    
+    # Dating callback handlers
+    from handlers import dating, social
+    app.add_handler(CallbackQueryHandler(dating.handle_dating_callback, pattern="^(date_|online_date_|buy_dating_gift_)"))
+    app.add_handler(CallbackQueryHandler(social.handle_social_callback, pattern="^(refresh_users|user_profile_|gift_to_|chat_with_|back_social|toggle_)"))
 
     # Message handler for keyboard navigation
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
