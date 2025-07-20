@@ -9,7 +9,7 @@ async def give_daily(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json("data/players.json")
     uid = str(user.id)
-    
+    te.message.reply_text("لطفاً ابتدا /start کنید.")
     if uid not in players or not players[uid].get("approved"):
         await update.message.reply_text("ابتدا باید ثبت‌نام کنید!")
         return
