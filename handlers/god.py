@@ -149,6 +149,7 @@ async def god_player_management(update: Update, context: ContextTypes.DEFAULT_TY
 
     keyboard = [
         [KeyboardButton("👥 همه بازیکنان"), KeyboardButton("🔍 جستجوی خدایی")],
+        [KeyboardButton("🔮 مدیریت پیامبران"), KeyboardButton("⚡ انتخاب پیامبر جدید")],
         [KeyboardButton("💰 تغییر ثروت"), KeyboardButton("⭐ تغییر سطح")],
         [KeyboardButton("🧬 تغییر DNA"), KeyboardButton("🎭 تغییر شخصیت")],
         [KeyboardButton("🚫 محکومیت"), KeyboardButton("✅ عفو کامل")],
@@ -158,6 +159,10 @@ async def god_player_management(update: Update, context: ContextTypes.DEFAULT_TY
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
     stats = db.get_god_stats()
+    
+    # Count prophets
+    players = db.get_all_players()
+    prophet_count = sum(1 for p in players.values() if p.get('prophet', False))
 
     await update.message.reply_text(
         f"👑 مدیریت مطلق بازیکنان 👑\n\n"
@@ -165,12 +170,129 @@ async def god_player_management(update: Update, context: ContextTypes.DEFAULT_TY
         f"👥 کل مخلوقات: {stats.get('total_players', 0)}\n"
         f"✅ مورد تأیید: {stats.get('approved_players', 0)}\n"
         f"🕐 در انتظار: {stats.get('waiting_approval', 0)}\n"
+        f"🔮 پیامبران: {prophet_count} نفر\n"
         f"💰 کل ثروت: {stats.get('total_money', 0):,} تومان\n"
         f"📈 میانگین سطح: {stats.get('avg_level', 0):.1f}\n"
         f"💍 متاهل: {stats.get('married_players', 0)}\n\n"
         "🔱 قدرت مطلق بر مخلوقات شما!",
         reply_markup=reply_markup
     )
+
+async def select_prophet(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Allow god to select a new prophet"""
+    if update.effective_user.id != ADMIN_ID:
+        return
+    
+    context.user_data['selecting_prophet'] = True
+    await update.message.reply_text(
+        "🔮 انتخاب پیامبر جدید\n\n"
+        "لطفاً آیدی عددی یا نام کاربری (@username) کسی که می‌خواهید پیامبر کنید را وارد کنید:\n\n"
+        "مثال: 123456789 یا @username"
+    )
+
+async def manage_prophets(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show current prophets and management options"""
+    if update.effective_user.id != ADMIN_ID:
+        return
+    
+    players = db.get_all_players()
+    prophets = {uid: p for uid, p in players.items() if p.get('prophet', False)}
+    
+    if not prophets:
+        await update.message.reply_text(
+            "🔮 هیچ پیامبری انتخاب نشده است!\n\n"
+            "از دکمه 'انتخاب پیامبر جدید' برای انتخاب پیامبر استفاده کنید."
+        )
+        return
+    
+    text = "🔮 لیست پیامبران خدایی:\n\n"
+    for uid, prophet in prophets.items():
+        text += f"👤 {prophet['name']} (ID: {uid})\n"
+        text += f"⭐ سطح: {prophet.get('level', 1)}\n"
+        text += f"💰 ثروت: {prophet.get('money', 0):,} تومان\n"
+        text += f"📅 تاریخ انتخاب: {prophet.get('prophet_date', 'نامشخص')}\n\n"
+    
+    keyboard = [
+        [KeyboardButton("⚡ انتخاب پیامبر جدید"), KeyboardButton("❌ حذف پیامبر")],
+        [KeyboardButton("📜 پیام به پیامبران"), KeyboardButton("👑 بازگشت به خدا")]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    
+    await update.message.reply_text(text, reply_markup=reply_markup)
+
+async def handle_prophet_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle prophet selection input"""
+    if update.effective_user.id != ADMIN_ID or not context.user_data.get('selecting_prophet'):
+        return False
+    
+    user_input = update.message.text.strip()
+    context.user_data.pop('selecting_prophet', None)
+    
+    # Parse input
+    target_uid = None
+    if user_input.startswith('@'):
+        # Find by username
+        username = user_input[1:]
+        players = db.get_all_players()
+        for uid, p in players.items():
+            if p.get('username', '').lower() == username.lower():
+                target_uid = uid
+                break
+    else:
+        # Try as user ID
+        try:
+            target_uid = str(int(user_input))
+        except ValueError:
+            await update.message.reply_text("❌ فرمت نادرست! لطفاً آیدی عددی یا @username وارد کنید.")
+            return True
+    
+    if not target_uid:
+        await update.message.reply_text("❌ کاربری با این مشخصات یافت نشد!")
+        return True
+    
+    players = load_json('data/players.json')
+    if target_uid not in players:
+        await update.message.reply_text("❌ این کاربر در بازی ثبت‌نام نکرده!")
+        return True
+    
+    # Make user prophet
+    players[target_uid]['prophet'] = True
+    players[target_uid]['prophet_date'] = update.message.date.isoformat()
+    
+    # Give prophet special bonuses
+    players[target_uid]['money'] = players[target_uid].get('money', 0) + 50000
+    players[target_uid]['level'] = max(players[target_uid].get('level', 1), 10)
+    
+    # Add prophet items
+    if 'inventory' not in players[target_uid]:
+        players[target_uid]['inventory'] = []
+    players[target_uid]['inventory'].extend(["🔮 عصای پیامبری", "📜 کتاب مقدس", "👑 تاج پیامبر"])
+    
+    save_json('data/players.json', players)
+    
+    # Notify the new prophet
+    try:
+        await context.bot.send_message(
+            chat_id=int(target_uid),
+            text=f"🌟✨ تبریک! شما به پیامبری خدا انتخاب شدید! ✨🌟\n\n"
+                 f"🔮 شما اکنون نماینده خدا در زمین هستید\n"
+                 f"💰 هدیه انتخاب: 50,000 تومان\n"
+                 f"⭐ سطح شما به حداقل 10 ارتقاء یافت\n"
+                 f"🎁 آیتم‌های ویژه پیامبری دریافت کردید\n\n"
+                 f"🔱 مسئولیت عظیمی بر دوش شما قرار گرفته است!"
+        )
+    except Exception:
+        pass
+    
+    await update.message.reply_text(
+        f"✅ {players[target_uid]['name']} با موفقیت به پیامبری انتخاب شد!\n\n"
+        f"🔮 او اکنون نماینده شما در میان مخلوقات است!"
+    )
+    
+    # Log prophet selection
+    db.log_god_action("prophet_selected", action_data={"prophet_id": target_uid, "prophet_name": players[target_uid]['name']}, description=f"God selected new prophet: {players[target_uid]['name']}")
+    
+    return True
 
 async def god_economy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:

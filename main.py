@@ -93,6 +93,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await social.dating_menu(update, context)
     elif text == "🏛️ معبد":
         await god.temple_menu(update, context)
+    elif text == "⚡ انتخاب پیامبر جدید":
+        await god.select_prophet(update, context)
+    elif text == "🔮 مدیریت پیامبران":
+        await god.manage_prophets(update, context)
+    elif text == "✏️ ویرایش فرمان":
+        if user.id == ADMIN_ID:
+            context.user_data['edit_mode'] = 'bio'
+            await update.message.reply_text("📜 فرمان جدید خدایی را بنویسید:")
+    elif text == "🔮 انتخاب پیامبر":
+        await god.select_prophet(update, context)
 
     # Job center navigation
     elif text == "💼 مشاهده مشاغل":

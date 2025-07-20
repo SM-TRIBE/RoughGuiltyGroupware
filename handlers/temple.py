@@ -491,3 +491,301 @@ async def forgiveness_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     players[uid] = p
     save_json("data/players.json", players)
+import json
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
+from telegram.ext import ContextTypes
+from utils.tools import load_json, save_json
+from config import ADMIN_ID
+from datetime import datetime
+
+async def temple_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Temple where users can communicate with god"""
+    user = update.effective_user
+    uid = str(user.id)
+    players = load_json('data/players.json')
+    
+    if uid not in players or not players[uid].get("approved"):
+        await update.message.reply_text("ابتدا باید ثبت‌نام کنید!")
+        return
+    
+    keyboard = [
+        [KeyboardButton("🙏 دعا به خدا"), KeyboardButton("💌 پیام به خدا")],
+        [KeyboardButton("📜 پیام‌های خدا"), KeyboardButton("🕯️ نذر و نیاز")],
+        [KeyboardButton("🔮 درخواست معجزه"), KeyboardButton("⚡ برکت الهی")],
+        [KeyboardButton("🏠 خروج از معبد")]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    
+    temple_text = (
+        "🏛️✨ معبد مقدس ✨🏛️\n\n"
+        "به معبد خدایی خوش آمدید...\n"
+        "اینجا محل ارتباط با خالق عالم است.\n\n"
+        "🕯️ فضایی آرام و معنوی\n"
+        "🙏 محل دعا و نیایش\n"
+        "💌 ارسال پیام به خداوند\n"
+        "🔮 درخواست معجزه و برکت\n\n"
+        "✨ خدا همیشه شما را می‌بیند و می‌شنود..."
+    )
+    
+    await update.message.reply_text(temple_text, reply_markup=reply_markup)
+
+async def pray_to_god(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle prayer to god"""
+    user = update.effective_user
+    uid = str(user.id)
+    players = load_json('data/players.json')
+    p = players.get(uid, {})
+    
+    # Check if user has prayed recently
+    last_prayer = p.get('last_prayer')
+    if last_prayer:
+        from datetime import datetime, timedelta
+        last_time = datetime.fromisoformat(last_prayer)
+        if datetime.now() - last_time < timedelta(hours=6):
+            hours_left = 6 - (datetime.now() - last_time).seconds // 3600
+            await update.message.reply_text(
+                f"🙏 شما اخیراً دعا کرده‌اید.\n"
+                f"⏰ {hours_left} ساعت دیگر می‌توانید دوباره دعا کنید."
+            )
+            return
+    
+    # Give prayer benefits
+    import random
+    
+    benefits = []
+    luck_boost = random.randint(1, 3)
+    money_bonus = random.randint(100, 1000)
+    
+    p['traits'] = p.get('traits', {})
+    p['traits']['luck'] = min(20, p['traits'].get('luck', 5) + luck_boost)
+    p['money'] = p.get('money', 0) + money_bonus
+    p['last_prayer'] = datetime.now().isoformat()
+    
+    benefits.append(f"🍀 شانس +{luck_boost}")
+    benefits.append(f"💰 پول +{money_bonus:,}")
+    
+    # Random additional benefits
+    if random.random() < 0.3:  # 30% chance
+        xp_bonus = random.randint(10, 50)
+        p['xp'] = p.get('xp', 0) + xp_bonus
+        benefits.append(f"⭐ تجربه +{xp_bonus}")
+    
+    if random.random() < 0.2:  # 20% chance
+        item_gifts = ["🕯️ شمع مقدس", "📿 تسبیح", "💎 سنگ برکت", "🌟 ستاره آرزو"]
+        gift = random.choice(item_gifts)
+        if 'inventory' not in p:
+            p['inventory'] = []
+        p['inventory'].append(gift)
+        benefits.append(f"🎁 آیتم: {gift}")
+    
+    players[uid] = p
+    save_json('data/players.json', players)
+    
+    prayers = [
+        "خداوندا، راهم را روشن کن...",
+        "از تو کمک می‌خواهم تا موفق شوم...",
+        "خدایا، به خانواده‌ام برکت ده...",
+        "راهنمایی‌ام کن تا راه درست را پیدا کنم...",
+        "از تو سلامتی و آرامش می‌خواهم..."
+    ]
+    
+    prayer = random.choice(prayers)
+    
+    response_text = (
+        f"🙏✨ دعای شما به آسمان رسید ✨🙏\n\n"
+        f"💭 دعای شما: \"{prayer}\"\n\n"
+        f"🌟 خدا دعای شما را شنید و برکاتی فرستاد:\n"
+        + "\n".join([f"• {b}" for b in benefits]) + "\n\n"
+        f"🕯️ دعا قدرت عظیمی دارد..."
+    )
+    
+    await update.message.reply_text(response_text)
+
+async def message_to_god(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle sending message to god"""
+    context.user_data['sending_message_to_god'] = True
+    await update.message.reply_text(
+        "💌 پیام به خداوند\n\n"
+        "لطفاً پیام خود را برای خدا بنویسید:\n"
+        "(پیام شما مستقیماً به خدا ارسال می‌شود)"
+    )
+
+async def handle_message_to_god(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Process message sent to god"""
+    if not context.user_data.get('sending_message_to_god'):
+        return False
+    
+    user = update.effective_user
+    message = update.message.text
+    context.user_data.pop('sending_message_to_god', None)
+    
+    # Save message for god to see
+    messages_file = 'data/god_messages.json'
+    try:
+        with open(messages_file, 'r', encoding='utf-8') as f:
+            god_messages = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        god_messages = []
+    
+    god_messages.append({
+        'user_id': user.id,
+        'username': user.username or 'نامشخص',
+        'name': load_json('data/players.json').get(str(user.id), {}).get('name', 'نامشخص'),
+        'message': message,
+        'timestamp': datetime.now().isoformat(),
+        'replied': False
+    })
+    
+    with open(messages_file, 'w', encoding='utf-8') as f:
+        json.dump(god_messages, f, ensure_ascii=False, indent=2)
+    
+    # Notify god
+    try:
+        await context.bot.send_message(
+            chat_id=ADMIN_ID,
+            text=f"💌 پیام جدید از مخلوق:\n\n"
+                 f"👤 از: {user.first_name} (@{user.username or 'ندارد'})\n"
+                 f"🆔 آیدی: {user.id}\n"
+                 f"📝 پیام: {message}\n\n"
+                 f"برای پاسخ: /god_reply {user.id} پیام_شما"
+        )
+    except Exception:
+        pass
+    
+    await update.message.reply_text(
+        "✅ پیام شما به حضور خداوند رسید!\n\n"
+        "🙏 خدا پیام شما را مطالعه خواهد کرد\n"
+        "💫 اگر خدا صلاح بداند، پاسخ خواهد داد\n\n"
+        "🕯️ صبر و ایمان داشته باشید..."
+    )
+    
+    return True
+
+async def god_messages_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show messages from god to user"""
+    user = update.effective_user
+    uid = str(user.id)
+    
+    # Load god replies
+    try:
+        with open('data/god_replies.json', 'r', encoding='utf-8') as f:
+            god_replies = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        god_replies = []
+    
+    user_replies = [r for r in god_replies if r['user_id'] == user.id]
+    
+    if not user_replies:
+        await update.message.reply_text(
+            "📜 هیچ پیامی از خدا دریافت نکرده‌اید.\n\n"
+            "🙏 می‌توانید با 'پیام به خدا' با خداوند ارتباط برقرار کنید."
+        )
+        return
+    
+    text = "📜✨ پیام‌های خداوند ✨📜\n\n"
+    for reply in user_replies[-5:]:  # Show last 5 messages
+        date = datetime.fromisoformat(reply['timestamp']).strftime("%Y/%m/%d %H:%M")
+        text += f"🕐 {date}\n"
+        text += f"🔱 خداوند: {reply['message']}\n\n"
+    
+    await update.message.reply_text(text)
+
+async def request_miracle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle miracle requests"""
+    user = update.effective_user
+    uid = str(user.id)
+    players = load_json('data/players.json')
+    p = players.get(uid, {})
+    
+    # Check if user has requested miracle recently
+    last_miracle = p.get('last_miracle_request')
+    if last_miracle:
+        from datetime import datetime, timedelta
+        last_time = datetime.fromisoformat(last_miracle)
+        if datetime.now() - last_time < timedelta(days=1):
+            await update.message.reply_text(
+                "🔮 شما اخیراً درخواست معجزه کرده‌اید.\n"
+                "⏰ فردا می‌توانید دوباره درخواست دهید."
+            )
+            return
+    
+    import random
+    
+    # Small chance of miracle (10%)
+    if random.random() < 0.1:
+        miracles = [
+            ("💎 الماس نایاب", 10000),
+            ("🌟 ستاره شانس", 5000),
+            ("⚡ برق الهی", 3000),
+            ("🔮 کره جادویی", 7000)
+        ]
+        
+        miracle_item, miracle_value = random.choice(miracles)
+        
+        if 'inventory' not in p:
+            p['inventory'] = []
+        p['inventory'].append(miracle_item)
+        p['money'] = p.get('money', 0) + miracle_value
+        p['last_miracle_request'] = datetime.now().isoformat()
+        
+        players[uid] = p
+        save_json('data/players.json', players)
+        
+        await update.message.reply_text(
+            f"🌟✨ معجزه رخ داد! ✨🌟\n\n"
+            f"🎁 هدیه آسمانی: {miracle_item}\n"
+            f"💰 ارزش: {miracle_value:,} تومان\n\n"
+            f"🔱 خدا درخواست شما را اجابت کرد!"
+        )
+    else:
+        p['last_miracle_request'] = datetime.now().isoformat()
+        players[uid] = p
+        save_json('data/players.json', players)
+        
+        await update.message.reply_text(
+            "🙏 درخواست معجزه شما ثبت شد...\n\n"
+            "🕯️ خدا حکیم است و می‌داند چه وقت معجزه نشان دهد\n"
+            "💫 صبر کنید، شاید فردا معجزه برایتان رخ دهد\n\n"
+            "✨ ایمان داشته باشید..."
+        )
+
+async def divine_blessing(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Give divine blessing to user"""
+    user = update.effective_user
+    uid = str(user.id)
+    players = load_json('data/players.json')
+    p = players.get(uid, {})
+    
+    import random
+    
+    # Give random blessing
+    blessings = [
+        ("جذابیت", "charisma", 1),
+        ("هوش", "intelligence", 1),
+        ("قدرت", "strength", 1),
+        ("چابکی", "agility", 1),
+        ("شانس", "luck", 2)  # Luck gets more boost
+    ]
+    
+    blessing_name, trait, boost = random.choice(blessings)
+    
+    if 'traits' not in p:
+        p['traits'] = {"charisma": 5, "intelligence": 5, "strength": 5, "agility": 5, "luck": 5}
+    
+    old_value = p['traits'].get(trait, 5)
+    new_value = min(20, old_value + boost)
+    p['traits'][trait] = new_value
+    
+    # Additional small money blessing
+    money_blessing = random.randint(200, 800)
+    p['money'] = p.get('money', 0) + money_blessing
+    
+    players[uid] = p
+    save_json('data/players.json', players)
+    
+    await update.message.reply_text(
+        f"⚡✨ برکت الهی بر شما نازل شد! ✨⚡\n\n"
+        f"🌟 {blessing_name} شما افزایش یافت: {old_value} → {new_value}\n"
+        f"💰 برکت مالی: +{money_blessing:,} تومان\n\n"
+        f"🔱 خدا شما را برکت داد!"
+    )

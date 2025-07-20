@@ -297,6 +297,9 @@ async def show_main_square(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if level >= 7:
         main_keyboard.append([KeyboardButton("🏅 دستاوردها"), KeyboardButton("🏆 رتبه‌بندی")])
     
+    # Temple (available to all)
+    main_keyboard.append([KeyboardButton("🏛️ معبد"), KeyboardButton("💕 دیتینگ")])
+    
     # Admin features
     if user.id == ADMIN_ID:
         main_keyboard.append([KeyboardButton("👑 حالت خدا")])
