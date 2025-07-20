@@ -110,16 +110,202 @@ async def show_god_profile(update: Update, context: ContextTypes.DEFAULT_TYPE, p
     text += f"📢 پیام‌رسانی به همه مخلوقات\n"
     text += f"⏰ کنترل زمان و مکان\n"
     
+    # Show current prophets
+    players = load_json('data/players.json')
+    prophets = [p_data['name'] for p_data in players.values() if p_data.get('prophet')]
+    if prophets:
+        text += f"\n👑 پیامبران فعلی: {', '.join(prophets)}\n"
+    
     if p.get("bio"):
         text += f"\n📜 فرمان خدایی: {p['bio']}"
     
     keyboard = [
         [KeyboardButton("✏️ ویرایش فرمان"), KeyboardButton("🔮 انتخاب پیامبر")],
+        [KeyboardButton("👥 لیست پیامبران"), KeyboardButton("❌ برکناری پیامبر")],
         [KeyboardButton("👑 بازگشت به حالت خدا")]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     
     await update.message.reply_text(text, reply_markup=reply_markup)
+
+async def select_prophet(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Allow god to select prophets"""
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("🚫 فقط خداوند می‌تواند پیامبر انتخاب کند!")
+        return
+    
+    players = load_json('data/players.json')
+    eligible_players = []
+    
+    for uid, player in players.items():
+        if (player.get('approved') and 
+            not player.get('prophet') and 
+            int(uid) != ADMIN_ID and
+            player.get('level', 1) >= 5):
+            eligible_players.append((uid, player))
+    
+    if not eligible_players:
+        await update.message.reply_text("هیچ بازیکن واجد شرایطی برای پیامبری یافت نشد!")
+        return
+    
+    # Show list of eligible players
+    text = "🔮 انتخاب پیامبر\n\n"
+    text += "بازیکنان واجد شرایط (سطح 5+):\n\n"
+    
+    for uid, player in eligible_players[:10]:  # Show max 10
+        text += f"👤 {player['name']} - سطح {player.get('level', 1)}\n"
+        text += f"   💰 ثروت: {player.get('money', 0):,}\n"
+        text += f"   🎯 XP: {player.get('xp', 0)}\n"
+        text += f"   🆔 ID: {uid}\n\n"
+    
+    await update.message.reply_text(
+        text + 
+        "برای انتخاب پیامبر، فرمان زیر را ارسال کنید:\n"
+        "پیامبر [ID بازیکن]\n\n"
+        "مثال: پیامبر 123456789"
+    )
+
+async def handle_prophet_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle prophet selection command"""
+    if update.effective_user.id != ADMIN_ID:
+        return False
+    
+    text = update.message.text
+    if not text.startswith("پیامبر "):
+        return False
+    
+    try:
+        target_id = text.split()[1]
+        players = load_json('data/players.json')
+        
+        if target_id not in players:
+            await update.message.reply_text("❌ بازیکن یافت نشد!")
+            return True
+        
+        target_player = players[target_id]
+        
+        if not target_player.get('approved'):
+            await update.message.reply_text("❌ این بازیکن تأیید نشده است!")
+            return True
+        
+        if target_player.get('prophet'):
+            await update.message.reply_text("❌ این بازیکن از قبل پیامبر است!")
+            return True
+        
+        if target_player.get('level', 1) < 5:
+            await update.message.reply_text("❌ این بازیکن سطح کافی ندارد! (حداقل سطح 5)")
+            return True
+        
+        # Make the player a prophet
+        target_player['prophet'] = True
+        target_player['prophet_since'] = update.message.date.isoformat()
+        
+        # Give prophet bonuses
+        target_player['money'] = target_player.get('money', 0) + 10000
+        for trait in target_player['traits']:
+            target_player['traits'][trait] = min(20, target_player['traits'][trait] + 5)
+        
+        save_json('data/players.json', players)
+        
+        # Notify the new prophet
+        try:
+            await context.bot.send_message(
+                chat_id=int(target_id),
+                text=f"🔮⚡ تبریک! شما به عنوان پیامبر انتخاب شدید! ⚡🔮\n\n"
+                     f"🎁 هدایای پیامبری:\n"
+                     f"💰 +10,000 تومان\n"
+                     f"📈 +5 امتیاز به همه مهارت‌ها\n"
+                     f"👑 دسترسی به قدرت‌های خاص\n\n"
+                     f"شما اکنون نماینده خداوند در این دنیا هستید!"
+            )
+        except Exception:
+            pass
+        
+        await update.message.reply_text(
+            f"✅ {target_player['name']} با موفقیت به عنوان پیامبر انتخاب شد!\n"
+            f"🎁 هدایای پیامبری به او اعطا شده است."
+        )
+        
+    except (IndexError, ValueError):
+        await update.message.reply_text("❌ فرمت نادرست! استفاده کنید: پیامبر [ID]")
+    
+    return True
+
+async def dismiss_prophet(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Allow god to dismiss prophets"""
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("🚫 فقط خداوند می‌تواند پیامبر را برکنار کند!")
+        return
+    
+    players = load_json('data/players.json')
+    prophets = [(uid, p) for uid, p in players.items() if p.get('prophet')]
+    
+    if not prophets:
+        await update.message.reply_text("هیچ پیامبری موجود نیست!")
+        return
+    
+    text = "👑 لیست پیامبران فعلی:\n\n"
+    
+    for uid, prophet in prophets:
+        text += f"🔮 {prophet['name']}\n"
+        text += f"   📅 پیامبر از: {prophet.get('prophet_since', 'نامشخص')}\n"
+        text += f"   ⭐ سطح: {prophet.get('level', 1)}\n"
+        text += f"   🆔 ID: {uid}\n\n"
+    
+    await update.message.reply_text(
+        text + 
+        "برای برکناری پیامبر، فرمان زیر را ارسال کنید:\n"
+        "برکناری [ID پیامبر]\n\n"
+        "مثال: برکناری 123456789"
+    )
+
+async def handle_dismiss_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle prophet dismissal command"""
+    if update.effective_user.id != ADMIN_ID:
+        return False
+    
+    text = update.message.text
+    if not text.startswith("برکناری "):
+        return False
+    
+    try:
+        target_id = text.split()[1]
+        players = load_json('data/players.json')
+        
+        if target_id not in players:
+            await update.message.reply_text("❌ بازیکن یافت نشد!")
+            return True
+        
+        target_player = players[target_id]
+        
+        if not target_player.get('prophet'):
+            await update.message.reply_text("❌ این بازیکن پیامبر نیست!")
+            return True
+        
+        # Remove prophet status
+        target_player['prophet'] = False
+        target_player.pop('prophet_since', None)
+        
+        save_json('data/players.json', players)
+        
+        # Notify the dismissed prophet
+        try:
+            await context.bot.send_message(
+                chat_id=int(target_id),
+                text=f"⚡ شما از مقام پیامبری برکنار شدید.\n"
+                     f"قدرت‌های خاص شما باطل شده است."
+            )
+        except Exception:
+            pass
+        
+        await update.message.reply_text(
+            f"✅ {target_player['name']} از مقام پیامبری برکنار شد!"
+        )
+        
+    except (IndexError, ValueError):
+        await update.message.reply_text("❌ فرمت نادرست! استفاده کنید: برکناری [ID]")
+    
+    return True
 
 async def edit_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle profile editing"""
