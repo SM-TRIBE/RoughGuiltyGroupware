@@ -1,56 +1,108 @@
 
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from config import ADMIN_ID
-from utils.tools import load_json, save_json
+from config import ADMIN_ID, GOD_UNLIMITED_MONEY, GOD_MAX_LEVEL, GOD_MAX_STATS
+from db.database import db
 import json
+from datetime import datetime
 
 async def god_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         await update.message.reply_text("🚫 شما دسترسی خدایی ندارید!")
         return
     
+    # Initialize god player profile if not exists
+    await init_god_player(update.effective_user.id)
+    
     keyboard = [
-        [KeyboardButton("📢 پیام عمومی"), KeyboardButton("👑 مدیریت بازیکنان")],
-        [KeyboardButton("💰 مدیریت اقتصاد"), KeyboardButton("🎮 تنظیمات بازی")],
-        [KeyboardButton("📊 آمار کلی"), KeyboardButton("🎁 هدیه عمومی")],
-        [KeyboardButton("⚡ ریست سرور"), KeyboardButton("🔒 قفل/آزاد کردن")],
-        [KeyboardButton("🏠 خروج از حالت خدا")]
+        [KeyboardButton("⚡ قدرت‌های خدایی"), KeyboardButton("👑 مدیریت بازیکنان")],
+        [KeyboardButton("💰 اقتصاد کل سرور"), KeyboardButton("🌍 کنترل جهان")],
+        [KeyboardButton("📊 آمار خدایی"), KeyboardButton("🎁 هدایای الهی")],
+        [KeyboardButton("⚡ ریست کامل"), KeyboardButton("🔮 پیش‌بینی آینده")],
+        [KeyboardButton("👁️ نظارت کامل"), KeyboardButton("📜 تاریخ اعمال")],
+        [KeyboardButton("🌟 ایجاد معجزه"), KeyboardButton("🏠 خروج از حالت خدا")]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     
     await update.message.reply_text(
-        "👑 حالت خدا فعال شد\n\n"
-        "🔱 به پنل مدیریت کامل بازی خوش آمدید!\n"
-        "در اینجا می‌توانید تمام جنبه‌های بازی را کنترل کنید.",
+        "⚡🔱 حالت خدا فعال شد 🔱⚡\n\n"
+        "🌟 به پنل کنترل کامل کیهان خوش آمدید!\n"
+        "در اینجا بر تمام جنبه‌های هستی فرمان می‌رانید.\n\n"
+        "⚠️ قدرت مطلق = مسئولیت مطلق\n"
+        "💫 شما اکنون مانند یک خدای واقعی عمل می‌کنید!",
         reply_markup=reply_markup
     )
+    
+    # Log god activation
+    db.log_god_action("god_mode_activated", description="God mode panel accessed")
 
-async def god_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def init_god_player(user_id: int):
+    """Initialize god player with unlimited stats"""
+    god_player = db.get_player(user_id)
+    
+    if not god_player:
+        # Create god player
+        god_data = {
+            "telegram_id": user_id,
+            "name": "🔱 خداوند بازی 🔱",
+            "age": 999,
+            "bio": "خالق و حاکم مطلق این دنیا",
+            "approved": True,
+            "location": "🌌 بعد خدایی",
+            "money": GOD_UNLIMITED_MONEY,
+            "level": GOD_MAX_LEVEL,
+            "xp": 999999,
+            "traits": {
+                "charisma": GOD_MAX_STATS,
+                "intelligence": GOD_MAX_STATS,
+                "strength": GOD_MAX_STATS,
+                "agility": GOD_MAX_STATS,
+                "luck": GOD_MAX_STATS
+            },
+            "skill_points": 999999,
+            "inventory": ["⚡ صاعقه", "🌟 ستاره", "🔮 کره جادویی", "👑 تاج خدایی"],
+            "achievements": ["🔱 خدای بازی", "⚡ قدرت مطلق", "🌌 خالق کیهان"]
+        }
+        db.save_player(user_id, god_data)
+    else:
+        # Update existing player to god stats
+        god_player.update({
+            "money": GOD_UNLIMITED_MONEY,
+            "level": GOD_MAX_LEVEL,
+            "traits": {
+                "charisma": GOD_MAX_STATS,
+                "intelligence": GOD_MAX_STATS,
+                "strength": GOD_MAX_STATS,
+                "agility": GOD_MAX_STATS,
+                "luck": GOD_MAX_STATS
+            }
+        })
+        db.save_player(user_id, god_player)
+
+async def god_powers(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
     
-    if not context.args:
-        await update.message.reply_text("📢 استفاده: متن پیام خود را بنویسید")
-        return
-    
-    msg = "📢 پیام مهم از مدیریت:\n\n" + " ".join(context.args)
-    players = load_json('data/players.json')
-    
-    success = 0
-    failed = 0
-    
-    for uid in players:
-        try:
-            await context.bot.send_message(int(uid), msg)
-            success += 1
-        except Exception:
-            failed += 1
+    keyboard = [
+        [KeyboardButton("💥 انفجار قدرت"), KeyboardButton("🌪️ طوفان جادویی")],
+        [KeyboardButton("✨ معجزه شفا"), KeyboardButton("🔥 آتش خدایی")],
+        [KeyboardButton("❄️ یخبندان ابدی"), KeyboardButton("⚡ صاعقه مهیب")],
+        [KeyboardButton("🌈 پل رنگین‌کمان"), KeyboardButton("🕳️ سیاه‌چاله")],
+        [KeyboardButton("🔄 بازگردان زمان"), KeyboardButton("👑 بازگشت به خدا")]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     
     await update.message.reply_text(
-        f"✅ پیام با موفقیت ارسال شد!\n"
-        f"📤 موفق: {success}\n"
-        f"❌ ناموفق: {failed}"
+        "⚡ قدرت‌های خدایی ⚡\n\n"
+        "🌟 قدرت‌های خاص شما:\n"
+        "💥 انفجار قدرت - آسیب عظیم\n"
+        "🌪️ طوفان جادویی - کنترل عناصر\n"
+        "✨ معجزه شفا - شفای کامل\n"
+        "🔥 آتش خدایی - نابودی دشمنان\n"
+        "❄️ یخبندان ابدی - توقف زمان\n"
+        "⚡ صاعقه مهیب - قدرت خالص\n\n"
+        "انتخاب کنید تا قدرت را فعال سازید!",
+        reply_markup=reply_markup
     )
 
 async def god_player_management(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -58,24 +110,27 @@ async def god_player_management(update: Update, context: ContextTypes.DEFAULT_TY
         return
     
     keyboard = [
-        [KeyboardButton("👥 لیست بازیکنان"), KeyboardButton("🔍 درخواست‌های تأیید")],
-        [KeyboardButton("💰 تغییر پول"), KeyboardButton("⭐ تغییر سطح")],
-        [KeyboardButton("🚫 مسدود کردن"), KeyboardButton("✅ رفع مسدودیت")],
-        [KeyboardButton("🗑️ حذف بازیکن"), KeyboardButton("👑 بازگشت به حالت خدا")]
+        [KeyboardButton("👥 همه بازیکنان"), KeyboardButton("🔍 جستجوی خدایی")],
+        [KeyboardButton("💰 تغییر ثروت"), KeyboardButton("⭐ تغییر سطح")],
+        [KeyboardButton("🧬 تغییر DNA"), KeyboardButton("🎭 تغییر شخصیت")],
+        [KeyboardButton("🚫 محکومیت"), KeyboardButton("✅ عفو کامل")],
+        [KeyboardButton("💀 نابودی"), KeyboardButton("🌟 تولد مجدد")],
+        [KeyboardButton("🔮 پیش‌بینی سرنوشت"), KeyboardButton("👑 بازگشت به خدا")]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     
-    players = load_json('data/players.json')
-    total_players = len(players)
-    approved_players = sum(1 for p in players.values() if p.get('approved'))
-    waiting_approval = sum(1 for p in players.values() if p.get('waiting_approval'))
+    stats = db.get_god_stats()
     
     await update.message.reply_text(
-        f"👑 مدیریت بازیکنان\n\n"
-        f"👥 تعداد کل: {total_players}\n"
-        f"✅ تأیید شده: {approved_players}\n"
-        f"🕐 در انتظار تأیید: {waiting_approval}\n\n"
-        "برای مدیریت بازیکن خاص، آیدی تلگرام او را ارسال کنید.",
+        f"👑 مدیریت مطلق بازیکنان 👑\n\n"
+        f"📊 آمار کل:\n"
+        f"👥 کل مخلوقات: {stats.get('total_players', 0)}\n"
+        f"✅ مورد تأیید: {stats.get('approved_players', 0)}\n"
+        f"🕐 در انتظار: {stats.get('waiting_approval', 0)}\n"
+        f"💰 کل ثروت: {stats.get('total_money', 0):,} تومان\n"
+        f"📈 میانگین سطح: {stats.get('avg_level', 0):.1f}\n"
+        f"💍 متاهل: {stats.get('married_players', 0)}\n\n"
+        "🔱 قدرت مطلق بر مخلوقات شما!",
         reply_markup=reply_markup
     )
 
@@ -84,20 +139,23 @@ async def god_economy(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     keyboard = [
-        [KeyboardButton("💸 تورم اقتصادی"), KeyboardButton("💰 کاهش قیمت‌ها")],
-        [KeyboardButton("🎁 هدیه پولی عمومی"), KeyboardButton("📊 آمار اقتصادی")],
-        [KeyboardButton("⚙️ تنظیمات فروشگاه"), KeyboardButton("👑 بازگشت به حالت خدا")]
+        [KeyboardButton("💸 باران طلا"), KeyboardButton("💎 معدن الماس")],
+        [KeyboardButton("🔥 سوزاندن پول"), KeyboardButton("❄️ انجماد اقتصاد")],
+        [KeyboardButton("📈 بازار صعودی"), KeyboardButton("📉 سقوط بازار")],
+        [KeyboardButton("🎰 شانس همگانی"), KeyboardButton("💰 تکثیر پول")],
+        [KeyboardButton("🏦 بانک مرکزی"), KeyboardButton("👑 بازگشت به خدا")]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     
-    players = load_json('data/players.json')
-    total_money = sum(p.get('money', 0) for p in players.values())
+    stats = db.get_god_stats()
+    total_money = stats.get('total_money', 0)
     
     await update.message.reply_text(
-        f"💰 مدیریت اقتصاد\n\n"
-        f"💵 کل پول در گردش: {total_money:,} تومان\n"
-        f"📊 میانگین ثروت: {total_money // len(players) if players else 0:,} تومان\n\n"
-        "مدیریت کلی اقتصاد بازی را از اینجا انجام دهید.",
+        f"💰 کنترل کامل اقتصاد جهان 💰\n\n"
+        f"💵 کل دارایی جهان: {total_money:,} تومان\n"
+        f"📊 میانگین ثروت: {total_money // max(stats.get('total_players', 1), 1):,} تومان\n\n"
+        "🔱 شما بر اقتصاد کل جهان حاکمیت دارید!\n"
+        "💫 هر تصمیم شما سرنوشت میلیون‌ها نفر را تغییر می‌دهد!",
         reply_markup=reply_markup
     )
 
@@ -105,42 +163,44 @@ async def god_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
     
-    players = load_json('data/players.json')
+    stats = db.get_god_stats()
     
-    if not players:
-        await update.message.reply_text("📊 هیچ بازیکنی ثبت نشده!")
+    if not stats:
+        await update.message.reply_text("📊 هنوز هیچ مخلوقی خلق نشده!")
         return
     
-    # Calculate stats
-    total_players = len(players)
-    active_today = sum(1 for p in players.values() if p.get('last_daily'))
-    married_players = sum(1 for p in players.values() if p.get('partner'))
-    total_money = sum(p.get('money', 0) for p in players.values())
-    avg_level = sum(p.get('level', 1) for p in players.values()) / total_players
-    highest_level = max(p.get('level', 1) for p in players.values())
+    # Get additional detailed stats
+    players = db.get_all_players()
+    if players:
+        richest = max(players.values(), key=lambda p: p.get('money', 0))
+        highest_lvl = max(players.values(), key=lambda p: p.get('level', 1))
+    else:
+        richest = {"name": "هیچکس", "money": 0}
+        highest_lvl = {"name": "هیچکس", "level": 0}
     
-    # Top players
-    richest = max(players.values(), key=lambda p: p.get('money', 0))
-    highest_lvl_player = max(players.values(), key=lambda p: p.get('level', 1))
-    
-    text = f"📊 آمار کلی سرور\n\n"
-    text += f"👥 کل بازیکنان: {total_players}\n"
-    text += f"🟢 فعال امروز: {active_today}\n"
-    text += f"💍 متاهل: {married_players}\n"
-    text += f"💰 کل پول: {total_money:,} تومان\n"
-    text += f"📊 میانگین سطح: {avg_level:.1f}\n"
-    text += f"🏆 بالاترین سطح: {highest_level}\n\n"
-    text += f"🥇 ثروتمندترین: {richest.get('name', 'نامشخص')} ({richest.get('money', 0):,} تومان)\n"
-    text += f"⭐ بالاترین سطح: {highest_lvl_player.get('name', 'نامشخص')} (سطح {highest_lvl_player.get('level', 1)})"
+    text = f"🔱 آمار خدایی سرور 🔱\n\n"
+    text += f"🌍 کل مخلوقات: {stats.get('total_players', 0)}\n"
+    text += f"✅ مورد پذیرش: {stats.get('approved_players', 0)}\n"
+    text += f"🕐 منتظر تأیید: {stats.get('waiting_approval', 0)}\n"
+    text += f"💰 کل ثروت جهان: {stats.get('total_money', 0):,} تومان\n"
+    text += f"📊 میانگین سطح: {stats.get('avg_level', 0):.2f}\n"
+    text += f"🏆 بالاترین سطح: {stats.get('max_level', 0)}\n"
+    text += f"💍 مخلوقات متاهل: {stats.get('married_players', 0)}\n\n"
+    text += f"👑 امپراتور ثروت: {richest.get('name', 'نامشخص')} ({richest.get('money', 0):,} تومان)\n"
+    text += f"⭐ قهرمان سطح: {highest_lvl.get('name', 'نامشخص')} (سطح {highest_lvl.get('level', 1)})\n\n"
+    text += f"⚡ شما بر {stats.get('total_players', 0)} روح حکومت می‌کنید!"
     
     await update.message.reply_text(text)
+    
+    # Log stats view
+    db.log_god_action("stats_viewed", description="God viewed server statistics")
 
 async def god_gift(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
     
     if len(context.args) < 2:
-        await update.message.reply_text("🎁 استفاده: /gift مبلغ پیام\nمثال: /gift 1000 هدیه عید")
+        await update.message.reply_text("🎁 استفاده: /gift مبلغ پیام\nمثال: /gift 1000 هدیه از خداوند")
         return
     
     try:
@@ -150,42 +210,54 @@ async def god_gift(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ مبلغ باید عدد باشد!")
         return
     
-    players = load_json('data/players.json')
+    players = db.get_all_players()
+    success_count = 0
     
     for uid, player in players.items():
-        player["money"] = player.get("money", 0) + amount
         try:
+            player["money"] = player.get("money", 0) + amount
+            db.save_player(int(uid), player)
+            
             await context.bot.send_message(
                 int(uid),
-                f"🎁 هدیه ویژه از مدیریت!\n\n"
+                f"🌟 هدیه مقدس از خداوند! 🌟\n\n"
                 f"💰 مبلغ: {amount:,} تومان\n"
-                f"📝 پیام: {message}"
+                f"📜 پیام مقدس: {message}\n\n"
+                f"🔱 خداوند شما را یاد دارد!"
             )
+            success_count += 1
         except Exception:
             continue
     
-    save_json('data/players.json', players)
-    
     await update.message.reply_text(
-        f"✅ هدیه با موفقیت به همه بازیکنان داده شد!\n"
+        f"✨ هدیه الهی با موفقیت فرستاده شد! ✨\n"
         f"💰 مبلغ: {amount:,} تومان\n"
-        f"👥 تعداد دریافت کنندگان: {len(players)}"
+        f"👥 دریافت‌کنندگان: {success_count}\n"
+        f"⚡ قدرت خدایی شما بر همگان تأثیر گذاشت!"
     )
+    
+    # Log god gift
+    db.log_god_action("god_gift", action_data={"amount": amount, "recipients": success_count}, description=f"God gave {amount} to all players")
 
 async def god_reset_server(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
     
     keyboard = [
-        [KeyboardButton("⚠️ تأیید ریست کامل"), KeyboardButton("❌ انصراف")],
-        [KeyboardButton("🔄 ریست اقتصاد فقط"), KeyboardButton("👑 بازگشت به حالت خدا")]
+        [KeyboardButton("💥 ریست آخرالزمان"), KeyboardButton("❌ انصراف")],
+        [KeyboardButton("🔄 ریست اقتصادی"), KeyboardButton("🌪️ ریست جزئی")],
+        [KeyboardButton("👑 بازگشت به خدا")]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     
     await update.message.reply_text(
-        "⚠️ هشدار! ریست سرور\n\n"
-        "این عمل همه اطلاعات بازیکنان را پاک می‌کند!\n"
-        "آیا مطمئن هستید؟",
+        "⚠️🔥 ریست خدایی 🔥⚠️\n\n"
+        "💀 این عمل می‌تواند همه چیز را نابود کند!\n"
+        "🌍 جهان کامل در دستان شماست!\n\n"
+        "💥 ریست آخرالزمان = نابودی کامل\n"
+        "🔄 ریست اقتصادی = فقط پول‌ها\n"
+        "🌪️ ریست جزئی = بازنشانی محدود\n\n"
+        "⚡ تصمیم خدایی شما چیست؟",
         reply_markup=reply_markup
     )
 
@@ -195,37 +267,135 @@ async def handle_god_commands(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     text = update.message.text
     
-    if text == "⚠️ تأیید ریست کامل":
-        # Reset everything
-        save_json('data/players.json', {})
-        save_json('data/chat.json', {"messages": []})
-        save_json('data/partners.json', [])
+    if text == "💥 ریست آخرالزمان":
+        # Complete server reset with dramatic flair
+        if db.use_postgres:
+            try:
+                conn = db.get_connection()
+                cur = conn.cursor()
+                cur.execute("TRUNCATE TABLE players RESTART IDENTITY CASCADE")
+                cur.execute("TRUNCATE TABLE chat_messages RESTART IDENTITY CASCADE")
+                cur.execute("TRUNCATE TABLE marriages RESTART IDENTITY CASCADE")
+                conn.commit()
+                cur.close()
+                conn.close()
+            except Exception as e:
+                print(f"Reset error: {e}")
+        else:
+            from utils.tools import save_json
+            save_json('data/players.json', {})
+            save_json('data/chat.json', {"messages": []})
+            save_json('data/partners.json', [])
         
-        await update.message.reply_text("✅ سرور به طور کامل ریست شد!")
+        # Reinitialize god
+        await init_god_player(update.effective_user.id)
         
-    elif text == "🔄 ریست اقتصاد فقط":
+        await update.message.reply_text(
+            "💥🌌 آخرالزمان فرا رسید! 🌌💥\n\n"
+            "🔥 جهان قدیم نابود شد...\n"
+            "✨ جهان جدید خلق می‌شود...\n"
+            "🌟 شما همچنان خدای این دنیای جدید هستید!\n\n"
+            "⚡ ریست کامل انجام شد!"
+        )
+        
+        db.log_god_action("apocalypse_reset", description="Complete server reset executed")
+        
+    elif text == "🔄 ریست اقتصادی":
         # Reset only economy
-        players = load_json('data/players.json')
+        players = db.get_all_players()
         for uid, player in players.items():
-            player["money"] = 1000
+            if int(uid) != ADMIN_ID:  # Don't reset god's money
+                player["money"] = 1000
+                player["inventory"] = []
+            db.save_player(int(uid), player)
+        
+        await update.message.reply_text(
+            "💰🔄 بازنشانی اقتصادی انجام شد! 🔄💰\n\n"
+            "💸 همه ثروت‌ها به حالت اولیه بازگشت!\n"
+            "🎒 موجودی‌ها پاک شد!\n"
+            "⚡ شما همچنان دارای قدرت نامحدود هستید!"
+        )
+        
+        db.log_god_action("economy_reset", description="Economy reset executed")
+
+async def god_miracle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+    
+    import random
+    
+    players = db.get_all_players()
+    if not players:
+        await update.message.reply_text("🌟 هیچ مخلوقی برای معجزه وجود ندارد!")
+        return
+    
+    miracles = [
+        "💎 الماس آسمانی",
+        "🌟 ستاره افتاده", 
+        "🔮 کره جادویی",
+        "👑 تاج طلایی",
+        "⚡ صاعقه خدایی",
+        "🌈 قطره رنگین‌کمان"
+    ]
+    
+    # Select random players for miracle
+    lucky_players = random.sample(list(players.items()), min(3, len(players)))
+    
+    for uid, player in lucky_players:
+        miracle_item = random.choice(miracles)
+        miracle_amount = random.randint(5000, 50000)
+        
+        player["money"] = player.get("money", 0) + miracle_amount
+        if "inventory" not in player:
             player["inventory"] = []
-        save_json('data/players.json', players)
+        player["inventory"].append(miracle_item)
         
-        await update.message.reply_text("✅ اقتصاد بازی ریست شد!")
+        db.save_player(int(uid), player)
         
-    elif text.startswith("💰 پول ") and len(text.split()) >= 3:
-        # Change player money: "💰 پول USER_ID AMOUNT"
-        parts = text.split()
         try:
-            target_id = parts[2]
-            amount = int(parts[3])
-            
-            players = load_json('data/players.json')
-            if target_id in players:
-                players[target_id]["money"] = amount
-                save_json('data/players.json', players)
-                await update.message.reply_text(f"✅ پول بازیکن {target_id} به {amount:,} تغییر یافت!")
-            else:
-                await update.message.reply_text("❌ بازیکن یافت نشد!")
-        except (IndexError, ValueError):
-            await update.message.reply_text("❌ فرمت اشتباه! استفاده: 💰 پول USER_ID AMOUNT")
+            await context.bot.send_message(
+                int(uid),
+                f"🌟✨ معجزه خدایی! ✨🌟\n\n"
+                f"🎁 هدیه معجزه‌آسا: {miracle_item}\n"
+                f"💰 پول معجزه: {miracle_amount:,} تومان\n\n"
+                f"🔱 خداوند بر شما لطف کرده است!"
+            )
+        except Exception:
+            continue
+    
+    await update.message.reply_text(
+        f"🌟 معجزه خدایی انجام شد! 🌟\n\n"
+        f"⚡ {len(lucky_players)} نفر برکت دریافت کردند!\n"
+        f"💫 قدرت شما جهان را تکان داد!"
+    )
+    
+    db.log_god_action("miracle_performed", action_data={"recipients": len(lucky_players)}, description="God performed miracle")
+
+# Add handlers for all god powers
+async def handle_god_power(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+    
+    text = update.message.text
+    power_messages = {
+        "💥 انفجار قدرت": "💥 انفجار مهیبی رخ داد! قدرت خدایی شما جهان را لرزاند!",
+        "🌪️ طوفان جادویی": "🌪️ طوفان جادویی شما آسمان‌ها را آشفته کرد!",
+        "✨ معجزه شفا": "✨ شفای الهی بر همگان نازل شد!",
+        "🔥 آتش خدایی": "🔥 آتش مقدس شما دشمنان را سوزاند!",
+        "❄️ یخبندان ابدی": "❄️ یخبندان شما زمان را متوقف کرد!",
+        "⚡ صاعقه مهیب": "⚡ صاعقه شما آسمان‌ها را شکافت!",
+        "🌈 پل رنگین‌کمان": "🌈 پل زیبای شما دو جهان را به هم وصل کرد!",
+        "🕳️ سیاه‌چاله": "🕳️ سیاه‌چاله شما فضا-زمان را خم کرد!",
+        "🔄 بازگردان زمان": "🔄 زمان به عقب بازگشت! شما بر زمان حاکمید!"
+    }
+    
+    if text in power_messages:
+        await update.message.reply_text(power_messages[text])
+        db.log_god_action("power_used", description=f"God used power: {text}")
+
+# Register all god functions
+__all__ = [
+    'god_menu', 'god_powers', 'god_player_management', 'god_economy', 
+    'god_stats', 'god_gift', 'god_reset_server', 'handle_god_commands',
+    'god_miracle', 'handle_god_power'
+]

@@ -1,6 +1,4 @@
 
-<line_number>1</line_number>
-
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from utils.tools import load_json, save_json
@@ -240,4 +238,3 @@ async def shooting_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "💥 = خطا",
         reply_markup=reply_markup
     )
-

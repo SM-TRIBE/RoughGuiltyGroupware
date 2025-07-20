@@ -4,6 +4,14 @@ from datetime import datetime
 from random import choice
 
 def load_json(path):
+    """Load JSON file with fallback support for database"""
+    from db.database import db
+    
+    # If it's players.json, try to use database first
+    if 'players.json' in path and db.use_postgres:
+        return db.get_all_players()
+    
+    # Fallback to file system
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
@@ -17,6 +25,18 @@ def load_json(path):
             return {}
 
 def save_json(path, data):
+    """Save JSON file with database support"""
+    from db.database import db
+    
+    # If it's players.json and we're using postgres, save to database
+    if 'players.json' in path and db.use_postgres:
+        for uid, player_data in data.items():
+            try:
+                db.save_player(int(uid), player_data)
+            except (ValueError, TypeError):
+                continue
+    
+    # Always save to file as backup
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w', encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)

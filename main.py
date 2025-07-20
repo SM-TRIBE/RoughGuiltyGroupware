@@ -156,8 +156,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await economy.loan_system(update, context)
     elif text == "💎 سرمایه‌گذاری":
         await economy.investment_system(update, context)
-    elif text.startswith("🎰"):
+    elif await economy.handle_gambling_selection(update, context):
+        pass  # Gambling selection handled
+    elif context.user_data.get('expecting_bet'):
         await economy.play_gamble(update, context)
+    elif text.startswith("انتقال "):
+        await economy.handle_transfer(update, context)
     
     # Minigames navigation
     elif text == "🎲 تاس‌بازی":
@@ -191,19 +195,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif context.user_data.get('waiting_for_friend_request'):
         await social.handle_friend_request_input(update, context)
     
-    # God mode navigation
+    # God mode navigation  
     elif text == "📢 پیام عمومی":
         await god.god_broadcast(update, context)
     elif text == "👑 مدیریت بازیکنان":
         await god.god_player_management(update, context)
-    elif text == "💰 مدیریت اقتصاد":
+    elif text == "💰 اقتصاد کل سرور":
         await god.god_economy(update, context)
-    elif text == "📊 آمار کلی":
+    elif text == "📊 آمار خدایی":
         await god.god_stats(update, context)
-    elif text == "⚡ ریست سرور":
+    elif text == "⚡ ریست کامل":
         await god.god_reset_server(update, context)
-    elif text in ["⚠️ تأیید ریست کامل", "🔄 ریست اقتصاد فقط"] or text.startswith("💰 پول "):
+    elif text == "⚡ قدرت‌های خدایی":
+        await god.god_powers(update, context)
+    elif text == "🌟 ایجاد معجزه":
+        await god.god_miracle(update, context)
+    elif text in ["💥 ریست آخرالزمان", "🔄 ریست اقتصادی"] or text.startswith("💰 پول "):
         await god.handle_god_commands(update, context)
+    elif text in ["💥 انفجار قدرت", "🌪️ طوفان جادویی", "✨ معجزه شفا", "🔥 آتش خدایی", "❄️ یخبندان ابدی", "⚡ صاعقه مهیب", "🌈 پل رنگین‌کمان", "🕳️ سیاه‌چاله", "🔄 بازگردان زمان"]:
+        await god.handle_god_power(update, context)
     
     # Back to main menu
     elif text == "🏠 بازگشت به منو اصلی":

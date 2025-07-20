@@ -2,6 +2,7 @@
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from utils.tools import init_player, save_json, load_json
+from db.database import db
 from config import ADMIN_ID, AGE_MIN
 import json
 
@@ -111,8 +112,7 @@ async def save_for_approval(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(user.id)
     
     # Save user data
-    players = load_json('data/players.json')
-    players[uid] = {
+    player_data = {
         "telegram_id": user.id,
         "username": user.username or "",
         "name": context.user_data['user_name'],
@@ -142,7 +142,9 @@ async def save_for_approval(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "last_daily": None,
         "skill_points": 0
     }
-    save_json('data/players.json', players)
+    
+    # Save to database
+    db.save_player(user.id, player_data)
     
     # Send to admin for approval
     admin_message = (
