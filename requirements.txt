@@ -1,25 +1,2 @@
-# Web framework (choose one based on your project)
-flask==2.3.3
-# or django==4.2.7
-# or fastapi==0.104.1
-# or uvicorn==0.23.2 (for FastAPI)
-
-# Database connectors (if needed)
-psycopg2-binary==2.9.9  # For PostgreSQL
-SQLAlchemy==2.0.23      # For ORM/database interactions
-
-# Authentication and security (if needed)
-python-jose==3.3.0      # For JWT authentication
-passlib==1.7.4          # For password hashing
-bcrypt==4.0.1           # For password encryption
-
-# HTTP requests and utilities
-requests==2.31.0        # For API calls
-gunicorn==21.2.0        # Production WSGI server for Render
-
-# Optional: WebSockets for real-time collaboration
-websocket-client==1.6.4
-
-# Optional: Task queues for background tasks
-redis==5.0.1            # For Redis-based task queues
-celery==5.3.6           # For background task processing
+python-telegram-bot==20.7  # For Telegram bot functionality
+gunicorn==21.2.0           # WSGI server for Render (if running as a web process)
