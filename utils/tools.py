@@ -33,7 +33,9 @@ def init_player(user):
             "traits": {
                 "charisma": 5,
                 "intelligence": 5,
-                "strength": 5
+                "strength": 5,
+                "agility": 5,
+                "luck": 5
             },
             "money": 1000,
             "xp": 0,
@@ -50,7 +52,22 @@ def init_player(user):
             "work_stats": {},
             "last_work": None,
             "last_daily": None,
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now().isoformat(),
+            "skill_points": 0,
+            "achievements": [],
+            "action_stats": {},
+            "active_quests": [],
+            "completed_quests": [],
+            "equipment": {
+                "weapon": None,
+                "armor": None,
+                "accessory": None
+            },
+            "battle_stats": {
+                "wins": 0,
+                "losses": 0,
+                "monsters_defeated": 0
+            }
         }
         save_json('data/players.json', players)
     
@@ -81,13 +98,21 @@ def check_level_up(player):
     level = player.get("level", 1)
     xp_needed = level * 100
     
-    if xp >= xp_needed:
+    leveled_up = False
+    
+    while xp >= xp_needed:
         player["level"] = level + 1
         player["xp"] = xp - xp_needed
+        
         # Level up bonuses
-        player["traits"]["charisma"] += 1
-        player["traits"]["intelligence"] += 1
-        player["traits"]["strength"] += 1
+        player["skill_points"] = player.get("skill_points", 0) + 2
         player["energy"] = 100  # Full energy restore
-        return True
-    return False
+        player["happiness"] = min(100, player.get("happiness", 50) + 10)
+        
+        # Update for next level check
+        level = player["level"]
+        xp = player["xp"]
+        xp_needed = level * 100
+        leveled_up = True
+    
+    return leveled_up
