@@ -9,48 +9,31 @@ async def give_daily(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json("data/players.json")
     uid = str(user.id)
-    te.message.reply_text("لطفاً ابتدا /start کنید.")
+    
     if uid not in players or not players[uid].get("approved"):
-        await update.message.reply_text("ابتدا باید ثبت‌نام کنید!")
-        return
-    
-    p = players[uid]
-    today = datetime.now().strftime("%Y-%m-%d")
-    last_daily = p.get("last_daily")
-    
-    if last_daily == today:
-        await update.message.reply_text("شما امروز جایزه روزانه خود را دریافت کرده‌اید!")
-        return
-    
-    # Give daily reward
-    daily_amount = 500 + (p.get("level", 1) * 50)  # Base + level bonus
-    p["money"] = p.get("money", 0) + daily_amount
-    p["last_daily"] = today
-    
-    # Save data
-    players[uid] = p
-    save_json("data/players.json", players)
-    
-    await update.message.reply_text(
-        f"🎁 جایزه روزانه!\n"
-        f"💰 {daily_amount:,} تومان دریافت کردید!\n"
-        f"💳 موجودی جدید: {p['money']:,} تومان"
-    )te.message.reply_text("لطفاً ابتدا /start کنید.")
+        await update.message.reply_text("لطفاً ابتدا /start کنید.")
         return
     
     p = players[uid]
     last_daily = p.get('last_daily')
     
     if last_daily:
-        last_daily_time = datetime.fromisoformat(last_daily)
-        if datetime.now() - last_daily_time < timedelta(days=1):
-            remaining = timedelta(days=1) - (datetime.now() - last_daily_time)
-            hours = remaining.seconds // 3600
-            minutes = (remaining.seconds % 3600) // 60
-            await update.message.reply_text(
-                f"⏰ شما باید {hours} ساعت و {minutes} دقیقه صبر کنید."
-            )
-            return
+        try:
+            last_daily_time = datetime.fromisoformat(last_daily)
+            if datetime.now() - last_daily_time < timedelta(days=1):
+                remaining = timedelta(days=1) - (datetime.now() - last_daily_time)
+                hours = remaining.seconds // 3600
+                minutes = (remaining.seconds % 3600) // 60
+                await update.message.reply_text(
+                    f"⏰ شما باید {hours} ساعت و {minutes} دقیقه صبر کنید."
+                )
+                return
+        except ValueError:
+            # Handle old date format
+            today = datetime.now().strftime("%Y-%m-%d")
+            if last_daily == today:
+                await update.message.reply_text("شما امروز جایزه روزانه خود را دریافت کرده‌اید!")
+                return
     
     # Daily reward calculation
     base_reward = 500
@@ -58,22 +41,31 @@ async def give_daily(update: Update, context: ContextTypes.DEFAULT_TYPE):
     random_bonus = random.randint(100, 300)
     total_reward = base_reward + level_bonus + random_bonus
     
-    p['money'] += total_reward
+    p['money'] = p.get('money', 0) + total_reward
     p['energy'] = min(100, p.get('energy', 100) + 20)
     p['happiness'] = min(100, p.get('happiness', 50) + 10)
     p['last_daily'] = datetime.now().isoformat()
     
+    players[uid] = p
     save_json("data/players.json", players)
     
     await update.message.reply_text(
         f"🎁 جایزه روزانه دریافت شد!\n"
-        f"💰 +{total_reward} تومان\n"
+        f"💰 +{total_reward:,} تومان\n"
         f"⚡ +20 انرژی\n"
         f"😊 +10 شادی\n\n"
-        f"موجودی فعلی: {p['money']} تومان"
+        f"موجودی فعلی: {p['money']:,} تومان"
     )
 
 async def economy_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    players = load_json("data/players.json")
+    uid = str(user.id)
+    
+    if uid not in players or not players[uid].get("approved"):
+        await update.message.reply_text("لطفاً ابتدا /start کنید.")
+        return
+    
     keyboard = [
         [KeyboardButton("🎁 جایزه روزانه"), KeyboardButton("📊 آمار مالی")],
         [KeyboardButton("💸 انتقال پول"), KeyboardButton("🎰 شانس‌آزمایی")],
@@ -91,6 +83,11 @@ async def financial_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json("data/players.json")
     uid = str(user.id)
+    
+    if uid not in players or not players[uid].get("approved"):
+        await update.message.reply_text("لطفاً ابتدا /start کنید.")
+        return
+    
     p = players[uid]
     
     # Calculate net worth
@@ -122,7 +119,7 @@ async def financial_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text += f"🏆 رتبه شما در بین ثروتمندان: "
     
     # Calculate rank
-    all_players = [(uid, data) for uid, data in players.items()]
+    all_players = [(uid, data) for uid, data in players.items() if data.get("approved")]
     all_players.sort(key=lambda x: x[1].get('money', 0), reverse=True)
     
     for i, (player_uid, _) in enumerate(all_players, 1):
@@ -136,6 +133,11 @@ async def gambling(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json("data/players.json")
     uid = str(user.id)
+    
+    if uid not in players or not players[uid].get("approved"):
+        await update.message.reply_text("لطفاً ابتدا /start کنید.")
+        return
+    
     p = players[uid]
     
     if p.get('money', 0) < 100:
@@ -159,16 +161,25 @@ async def play_gamble(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not text.startswith("🎰"):
         return
     
-    amount_str = text.split()[1]
-    amount = int(amount_str)
+    try:
+        amount_str = text.split()[1]
+        amount = int(amount_str)
+    except (IndexError, ValueError):
+        await update.message.reply_text("مبلغ نامعتبر!")
+        return
     
     user = update.effective_user
     players = load_json("data/players.json")
     uid = str(user.id)
+    
+    if uid not in players or not players[uid].get("approved"):
+        await update.message.reply_text("لطفاً ابتدا /start کنید.")
+        return
+    
     p = players[uid]
     
     if p.get('money', 0) < amount:
-        await update.message.reply_text(f"پول کافی ندارید! نیاز: {amount} تومان")
+        await update.message.reply_text(f"پول کافی ندارید! نیاز: {amount:,} تومان")
         return
     
     # Gambling logic
@@ -176,21 +187,38 @@ async def play_gamble(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if luck <= 10:  # 10% chance - big win
         winnings = amount * 3
-        p['money'] += winnings
-        result = f"🎉 برنده شدید! +{winnings} تومان"
+        p['money'] = p.get('money', 0) + winnings
+        result = f"🎉 برنده بزرگ شدید! +{winnings:,} تومان"
     elif luck <= 30:  # 20% chance - small win
         winnings = amount
-        p['money'] += winnings
-        result = f"😊 برنده شدید! +{winnings} تومان"
+        p['money'] = p.get('money', 0) + winnings
+        result = f"😊 برنده شدید! +{winnings:,} تومان"
     elif luck <= 50:  # 20% chance - break even
         result = "😐 مساوی! پولتان برگشت"
     else:  # 50% chance - lose
-        p['money'] -= amount
-        result = f"😢 باختید! -{amount} تومان"
+        p['money'] = p.get('money', 0) - amount
+        result = f"😢 باختید! -{amount:,} تومان"
     
+    players[uid] = p
     save_json("data/players.json", players)
     
     await update.message.reply_text(
         f"{result}\n"
-        f"موجودی فعلی: {p['money']} تومان"
+        f"موجودی فعلی: {p['money']:,} تومان"
+    )
+
+async def transfer_money(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    players = load_json("data/players.json")
+    uid = str(user.id)
+    
+    if uid not in players or not players[uid].get("approved"):
+        await update.message.reply_text("لطفاً ابتدا /start کنید.")
+        return
+    
+    await update.message.reply_text(
+        "💸 انتقال پول\n\n"
+        "برای انتقال پول، دستور زیر را ارسال کنید:\n"
+        "/transfer @username مبلغ\n\n"
+        "مثال: /transfer @john 1000"
     )
