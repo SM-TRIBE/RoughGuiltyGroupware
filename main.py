@@ -185,6 +185,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text == "🏠 بازگشت به منو اصلی":
         await start.show_main_square(update, context)
 
+async def handle_photo_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Handle photo messages during registration
+    if context.user_data.get('registration_step') == 'photo':
+        await start.handle_registration(update, context)
+    else:
+        await update.message.reply_text("لطفاً ابتدا فرآیند ثبت‌نام را با ارسال /start شروع کنید.")
+
+async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Handle voice messages during registration
+    if context.user_data.get('registration_step') == 'voice':
+        await start.handle_registration(update, context)
+    else:
+        await update.message.reply_text("لطفاً ابتدا فرآیند ثبت‌نام را با ارسال /start شروع کنید.")
+
 async def handle_skill_upgrade(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     players = load_json('data/players.json')
@@ -255,6 +269,12 @@ def main():
     
     # Message handler for keyboard navigation
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    # Message handler for photos during registration
+    app.add_handler(MessageHandler(filters.PHOTO, handle_photo_message))
+    
+    # Message handler for voice messages during registration
+    app.add_handler(MessageHandler(filters.VOICE, handle_voice_message))
     
     print("🚀 Bot started successfully!")
     app.run_polling()
