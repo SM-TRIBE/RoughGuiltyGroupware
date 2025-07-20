@@ -1,5 +1,73 @@
+
 [
-  {"id": "rose", "name": "رز قرمز", "cost": 150, "effect": "+1 charisma"},
-  {"id": "perfume", "name": "عطر فریبنده", "cost": 300, "effect": "+2 charisma"},
-  {"id": "diamond", "name": "الماس شب", "cost": 1000, "effect": "+5 affection"}
+  {
+    "id": "rose",
+    "name": "گل رز قرمز",
+    "cost": 150,
+    "effect": "+2 charisma",
+    "description": "گل زیبا برای ابراز عشق"
+  },
+  {
+    "id": "perfume",
+    "name": "عطر زعفرانی",
+    "cost": 300,
+    "effect": "+3 charisma",
+    "description": "عطر لوکس با رایحه زعفران"
+  },
+  {
+    "id": "diamond",
+    "name": "الماس شب",
+    "cost": 1000,
+    "effect": "+5 charisma",
+    "description": "جواهری گرانبها"
+  },
+  {
+    "id": "book",
+    "name": "کتاب شاهنامه",
+    "cost": 200,
+    "effect": "+3 intelligence",
+    "description": "شاهکار فردوسی"
+  },
+  {
+    "id": "energy_drink",
+    "name": "نوشیدنی انرژی‌زا",
+    "cost": 100,
+    "effect": "+30 energy",
+    "description": "برای بازیابی انرژی"
+  },
+  {
+    "id": "tea",
+    "name": "چای مرغوب لاهیجان",
+    "cost": 80,
+    "effect": "+15 happiness",
+    "description": "چای اصیل ایرانی"
+  },
+  {
+    "id": "carpet",
+    "name": "فرش اصفهان",
+    "cost": 2000,
+    "effect": "+10 charisma, +5 culture",
+    "description": "فرش دستباف زیبا"
+  },
+  {
+    "id": "saffron",
+    "name": "زعفران مشهد",
+    "cost": 500,
+    "effect": "+5 charisma, +10 happiness",
+    "description": "طلای سرخ ایران"
+  },
+  {
+    "id": "protein",
+    "name": "پودر پروتئین",
+    "cost": 400,
+    "effect": "+3 strength",
+    "description": "برای تقویت عضلات"
+  },
+  {
+    "id": "meditation_book",
+    "name": "کتاب مراقبه",
+    "cost": 250,
+    "effect": "+20 mental_health",
+    "description": "برای آرامش ذهن"
+  }
 ]

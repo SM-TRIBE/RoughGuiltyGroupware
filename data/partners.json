@@ -1,0 +1,58 @@
+
+[
+  {
+    "id": "sara",
+    "name": "سارا",
+    "description": "دختری زیبا و باهوش از تهران",
+    "charisma": 8,
+    "intelligence": 7,
+    "preferred_locations": ["کافه‌ی ادبی", "پارک لاله"],
+    "available": true
+  },
+  {
+    "id": "reza",
+    "name": "رضا",
+    "description": "پسری ورزشکار و مهربان",
+    "charisma": 7,
+    "intelligence": 6,
+    "strength": 9,
+    "preferred_locations": ["باشگاه ورزشی", "پارک لاله"],
+    "available": true
+  },
+  {
+    "id": "maryam",
+    "name": "مریم",
+    "description": "هنرمندی خلاق و روشنفکر",
+    "charisma": 9,
+    "intelligence": 8,
+    "preferred_locations": ["کافه‌ی ادبی", "بازار تجریش"],
+    "available": true
+  },
+  {
+    "id": "ali",
+    "name": "علی",
+    "description": "مهندسی با شخصیت جذاب",
+    "charisma": 6,
+    "intelligence": 9,
+    "preferred_locations": ["دانشگاه تهران", "کافه‌ی ادبی"],
+    "available": true
+  },
+  {
+    "id": "zahra",
+    "name": "زهرا",
+    "description": "پزشکی مهربان و دلسوز",
+    "charisma": 8,
+    "intelligence": 9,
+    "preferred_locations": ["پارک لاله", "کافه‌ی ادبی"],
+    "available": true
+  },
+  {
+    "id": "hassan",
+    "name": "حسن",
+    "description": "بازرگانی موفق و باتجربه",
+    "charisma": 7,
+    "intelligence": 8,
+    "preferred_locations": ["هتل پارس", "پاساژ علاءالدین"],
+    "available": true
+  }
+]
