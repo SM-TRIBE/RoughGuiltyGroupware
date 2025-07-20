@@ -122,7 +122,7 @@ async def save_for_approval(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "voice_id": context.user_data['user_voice'],
         "waiting_approval": True,
         "approved": False,
-        "registration_date": str(update.message.date),
+        "registration_date": update.message.date.isoformat(),
         "location": "در انتظار تأیید",
         "traits": {
             "charisma": 5,
@@ -312,7 +312,9 @@ async def show_main_square(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📊 وضعیت شما:\n"
         f"💰 پول: {p.get('money', 0):,} تومان\n"
         f"⭐ سطح: {level}\n"
-        f"📍 مکان: {p.get('location', 'میدان اصلی')}\n\n"
+        f"📍 مکان: {p.get('location', 'میدان اصلی')}\n"
+        f"❤️ جذابیت: {p.get('traits', {}).get('charisma', 5)}/20\n"
+        f"🧠 هوش: {p.get('traits', {}).get('intelligence', 5)}/20\n\n"
     )
     
     if level < 2:

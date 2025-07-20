@@ -11,6 +11,69 @@ async def shop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if uid not in players or not players[uid].get("approved"):
         await update.message.reply_text("ابتدا باید ثبت‌نام کنید!")
         return
+
+async def buy_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle item purchase callback"""
+    query = update.callback_query
+    await query.answer()
+    
+    item_id = query.data.replace("buy_", "")
+    user = query.from_user
+    uid = str(user.id)
+    
+    players = load_json('data/players.json')
+    items = load_json("data/items.json")
+    
+    if uid not in players:
+        await query.edit_message_text("❌ لطفاً ابتدا /start کنید!")
+        return
+    
+    # Find item
+    item = None
+    for i in items:
+        if i.get("id") == item_id:
+            item = i
+            break
+    
+    if not item:
+        await query.edit_message_text("❌ آیتم یافت نشد!")
+        return
+    
+    p = players[uid]
+    cost = item.get("cost", 0)
+    
+    if p.get("money", 0) < cost:
+        await query.edit_message_text(
+            f"❌ پول کافی ندارید!\n"
+            f"💰 نیاز: {cost:,} تومان\n"
+            f"💳 شما: {p.get('money', 0):,} تومان"
+        )
+        return
+    
+    # Purchase item
+    p["money"] = p.get("money", 0) - cost
+    
+    if "inventory" not in p:
+        p["inventory"] = []
+    p["inventory"].append(item["name"])
+    
+    # Apply item effect
+    effect = item.get("effect", "")
+    if "+" in effect:
+        trait, value = effect.split("+")
+        if trait in p.get("traits", {}):
+            p["traits"][trait] = p["traits"].get(trait, 5) + int(value)
+    
+    players[uid] = p
+    save_json('data/players.json', players)
+    
+    await query.edit_message_text(
+        f"✅ خرید موفق!\n\n"
+        f"🛒 آیتم: {item['name']}\n"
+        f"💰 هزینه: {cost:,} تومان\n"
+        f"⚡ اثر: {item.get('description', 'بدون توضیحات')}\n"
+        f"💳 باقی‌مانده: {p['money']:,} تومان"
+    )
     
     items = load_json("data/items.json")
     if not items:

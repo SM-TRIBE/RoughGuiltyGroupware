@@ -22,15 +22,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     user = update.effective_user
     uid = str(user.id)
-    
+
     # Check if user exists and is approved
     players = load_json('data/players.json')
-    
+
     # Handle registration process
     if context.user_data.get('registration_step'):
         await start.handle_registration(update, context)
         return
-    
+
     # Check if user needs to register or is waiting approval
     if uid not in players:
         await start.start(update, context)
@@ -44,16 +44,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await start.start(update, context)
         return
-    
+
     # Handle chat messages
     if context.user_data.get('waiting_for_message'):
         await chat.receive_chat_message(update, context)
         return
-    
+
     # Handle god broadcast input
     if await god.handle_broadcast_input(update, context):
         return
-    
+
     # Main menu navigation
     if text == "👤 پروفایل":
         await profile.profile(update, context)
@@ -89,7 +89,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await social.social_menu(update, context)
     elif text == "👑 حالت خدا":
         await god.god_menu(update, context)
-    
+    elif text == "💕 دیتینگ":
+        await social.dating_menu(update, context)
+    elif text == "🏛️ معبد":
+        await god.temple_menu(update, context)
+
     # Job center navigation
     elif text == "💼 مشاهده مشاغل":
         await jobs.view_jobs(update, context)
@@ -97,13 +101,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await jobs.work(update, context)
     elif text.startswith("کار "):
         await jobs.set_job(update, context)
-    
+
     # Chat navigation
     elif text == "💬 ارسال پیام":
         await chat.send_message(update, context)
     elif text == "📖 خواندن پیام‌ها":
         await chat.read_messages(update, context)
-    
+
     # Hotel navigation
     elif text == "🛏️ رزرو اتاق":
         await hotel.book_room(update, context)
@@ -111,17 +115,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await hotel.hotel_restaurant(update, context)
     elif text == "💆 اسپا و ماساژ":
         await hotel.spa_services(update, context)
-    
+
     # Marriage navigation
     elif text == "💍 پیشنهاد ازدواج":
         await marriage.propose_marriage(update, context)
     elif text == "❌ انصراف":
         await update.message.reply_text("عملیات لغو شد.")
-    
+
     # Location visits
     elif text in zones.LOCATIONS:
         await zones.visit_location(update, context)
-    
+
     # RPG Features Navigation
     elif text == "📜 مشاهده ماموریت‌ها":
         await rpg.view_quests(update, context)
@@ -140,13 +144,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text.startswith("💪 ارتقاء") or text.startswith("🧠 ارتقاء") or text.startswith("😎 ارتقاء") or text.startswith("🏃 ارتقاء") or text.startswith("🍀 ارتقاء"):
         # Handle skill upgrades
         await handle_skill_upgrade(update, context)
-    
+
     # Achievement navigation
     elif text == "🏆 دستاوردهای من":
         await achievements.my_achievements(update, context)
     elif text == "📜 همه دستاوردها":
         await achievements.all_achievements(update, context)
-    
+
     # Economy menu navigation
     elif text == "🎁 جایزه روزانه":
         await economy.give_daily(update, context)
@@ -166,7 +170,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await economy.play_gamble(update, context)
     elif text.startswith("انتقال "):
         await economy.handle_transfer(update, context)
-    
+
     # Minigames navigation
     elif text == "🎲 تاس‌بازی":
         await minigames.dice_game(update, context)
@@ -180,7 +184,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await minigames.shooting_game(update, context)
     elif text.startswith("🎲 تاس"):
         await minigames.play_dice(update, context)
-    
+
     # Social navigation
     elif text == "👥 لیست دوستان":
         await social.friends_list(update, context)
@@ -194,11 +198,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await social.private_chat(update, context)
     elif text == "📊 فعالیت‌های اجتماعی":
         await social.social_activities(update, context)
-    
+
     # Handle friend request input
     elif context.user_data.get('waiting_for_friend_request'):
         await social.handle_friend_request_input(update, context)
-    
+
     # God mode navigation  
     elif text == "📢 پیام عمومی":
         context.user_data['waiting_for_broadcast'] = True
@@ -222,7 +226,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await god.handle_god_commands(update, context)
     elif text in ["💥 انفجار قدرت", "🌪️ طوفان جادویی", "✨ معجزه شفا", "🔥 آتش خدایی", "❄️ یخبندان ابدی", "⚡ صاعقه مهیب", "🌈 پل رنگین‌کمان", "🕳️ سیاه‌چاله", "🔄 بازگردان زمان"]:
         await god.handle_god_power(update, context)
-    
+
     # Back to main menu
     elif text == "🏠 بازگشت به منو اصلی":
         await start.show_main_square(update, context)
@@ -246,12 +250,12 @@ async def handle_skill_upgrade(update: Update, context: ContextTypes.DEFAULT_TYP
     players = load_json('data/players.json')
     uid = str(user.id)
     p = players.get(uid, {})
-    
+
     skill_points = p.get('skill_points', 0)
     if skill_points <= 0:
         await update.message.reply_text("❌ امتیاز مهارت کافی ندارید!")
         return
-    
+
     text = update.message.text
     skill_map = {
         "قدرت": "strength",
@@ -260,28 +264,28 @@ async def handle_skill_upgrade(update: Update, context: ContextTypes.DEFAULT_TYP
         "چابکی": "agility",
         "شانس": "luck"
     }
-    
+
     skill_persian = None
     for persian, english in skill_map.items():
         if persian in text:
             skill_persian = persian
             skill_english = english
             break
-    
+
     if not skill_persian:
         return
-    
+
     current_level = p.get("traits", {}).get(skill_english, 5)
     if current_level >= 20:
         await update.message.reply_text(f"❌ {skill_persian} شما به حداکثر سطح رسیده!")
         return
-    
+
     # Upgrade skill
     p["traits"][skill_english] = current_level + 1
     p["skill_points"] = skill_points - 1
     players[uid] = p
     save_json('data/players.json', players)
-    
+
     await update.message.reply_text(
         f"✅ {skill_persian} شما ارتقاء یافت!\n"
         f"📊 سطح جدید: {current_level + 1}\n"
@@ -290,7 +294,7 @@ async def handle_skill_upgrade(update: Update, context: ContextTypes.DEFAULT_TYP
 
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
-    
+
     # Commands  
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("profile", profile.profile))
@@ -306,20 +310,20 @@ def main():
     app.add_handler(CommandHandler("battle", rpg.battle_system))
     app.add_handler(CommandHandler("achievements", achievements.achievements_menu))
     app.add_handler(CommandHandler("transfer", economy.handle_transfer))
-    
+
     # Callback query handlers
     app.add_handler(CallbackQueryHandler(start.approve_user, pattern="^(approve|reject|details)_"))
     app.add_handler(CallbackQueryHandler(shop.buy_item, pattern="^buy_"))
-    
+
     # Message handler for keyboard navigation
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    
+
     # Message handler for photos during registration
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo_message))
-    
+
     # Message handler for voice messages during registration
     app.add_handler(MessageHandler(filters.VOICE, handle_voice_message))
-    
+
     print("🚀 Bot started successfully!")
     app.run_polling()
 
