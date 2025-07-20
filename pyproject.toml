@@ -5,5 +5,6 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 requires-python = ">=3.11"
 dependencies = [
+    "psycopg2-binary>=2.9.10",
     "telegram>=0.0.1",
 ]
