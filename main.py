@@ -1,4 +1,4 @@
-
+from handlers.god import god_broadcast
 import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes

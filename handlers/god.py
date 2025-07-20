@@ -168,7 +168,10 @@ async def god_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not stats:
         await update.message.reply_text("📊 هنوز هیچ مخلوقی خلق نشده!")
         return
-    
+    # handlers/god.py
+def god_broadcast(update, context):
+    # Your broadcast logic here
+    pass
     # Get additional detailed stats
     players = db.get_all_players()
     if players:
