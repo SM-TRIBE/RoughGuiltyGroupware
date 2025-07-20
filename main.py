@@ -1,7 +1,7 @@
 
 import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from config import BOT_TOKEN
 from utils.tools import load_json, save_json, init_player
 
@@ -50,15 +50,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     uid = str(user.id)
     
-    # Check if user exists
+    # Check if user exists and is approved
     players = load_json('data/players.json')
-    if uid not in players:
-        init_player(user)
-        players = load_json('data/players.json')
     
-    # Handle age confirmation first
-    if not players[uid].get("age_confirmed") and text.isdigit():
-        await start.reply_age(update, context)
+    # Handle registration process
+    if context.user_data.get('registration_step'):
+        await start.handle_registration(update, context)
+        return
+    
+    # Check if user needs to register or is waiting approval
+    if uid not in players:
+        await start.start(update, context)
+        return
+    elif not players[uid].get("approved"):
+        if players[uid].get("waiting_approval"):
+            await update.message.reply_text(
+                "🕐 درخواست شما در انتظار تأیید مدیر است.\n"
+                "لطفاً صبر کنید تا پروفایل شما بررسی شود."
+            )
+        else:
+            await start.start(update, context)
         return
     
     # Handle chat messages
@@ -172,18 +183,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Back to main menu
     elif text == "🏠 بازگشت به منو اصلی":
-        main_keyboard = [
-            [KeyboardButton("👤 پروفایل"), KeyboardButton("🗺️ سفر")],
-            [KeyboardButton("🛍️ فروشگاه"), KeyboardButton("💼 کار")],
-            [KeyboardButton("💬 کافه گپ"), KeyboardButton("🏨 هتل")],
-            [KeyboardButton("💍 ازدواج"), KeyboardButton("🏆 رتبه‌بندی")],
-            [KeyboardButton("⚔️ ماموریت‌ها"), KeyboardButton("🏰 سیاه‌چال‌ها")],
-            [KeyboardButton("🎒 کیف"), KeyboardButton("📈 مهارت‌ها")],
-            [KeyboardButton("🏅 دستاوردها"), KeyboardButton("💰 اقتصاد")],
-            [KeyboardButton("👑 حالت خدا"), KeyboardButton("⚙️ تنظیمات")]
-        ]
-        reply_markup = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
-        await update.message.reply_text("🏠 منوی اصلی", reply_markup=reply_markup)
+        await start.show_main_square(update, context)
 
 async def handle_skill_upgrade(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -249,6 +249,9 @@ def main():
     app.add_handler(CommandHandler("quest", rpg.quest_menu))
     app.add_handler(CommandHandler("battle", rpg.battle_system))
     app.add_handler(CommandHandler("achievements", achievements.achievements_menu))
+    
+    # Callback query handler for approval system
+    app.add_handler(CallbackQueryHandler(start.approve_user))
     
     # Message handler for keyboard navigation
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

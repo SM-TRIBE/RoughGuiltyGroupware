@@ -1,7 +1,7 @@
-
 import json
 import os
 from datetime import datetime
+from random import choice
 
 def load_json(path):
     if not os.path.exists(path):
@@ -22,14 +22,15 @@ def save_json(path, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def init_player(user):
+    """Initialize player - now only for legacy support"""
     players = load_json('data/players.json')
     uid = str(user.id)
-    
+
     if uid not in players:
         players[uid] = {
             "name": user.first_name or "بازیکن",
             "partner": None,
-            "location": "مرکز شهر",
+            "location": "در انتظار ثبت‌نام",
             "traits": {
                 "charisma": 5,
                 "intelligence": 5,
@@ -37,82 +38,53 @@ def init_player(user):
                 "agility": 5,
                 "luck": 5
             },
-            "money": 1000,
-            "xp": 0,
+            "money": 0,
             "level": 1,
+            "xp": 0,
             "inventory": [],
-            "age_confirmed": False,
-            "energy": 100,
-            "happiness": 50,
-            "mental_health": 50,
-            "fitness": 50,
-            "social_points": 0,
-            "culture_points": 0,
-            "current_job": None,
-            "work_stats": {},
-            "last_work": None,
-            "last_daily": None,
-            "created_at": datetime.now().isoformat(),
-            "skill_points": 0,
+            "job": None,
+            "skills": {},
             "achievements": [],
-            "action_stats": {},
-            "active_quests": [],
-            "completed_quests": [],
-            "equipment": {
-                "weapon": None,
-                "armor": None,
-                "accessory": None
-            },
-            "battle_stats": {
-                "wins": 0,
-                "losses": 0,
-                "monsters_defeated": 0
-            }
+            "last_daily": None,
+            "skill_points": 0,
+            "approved": False,
+            "waiting_approval": False
         }
         save_json('data/players.json', players)
-    
-    return players[uid]
 
-def ensure_player_exists(user_id):
-    players = load_json('data/players.json')
-    if str(user_id) not in players:
-        # Create basic player data if not exists
-        players[str(user_id)] = {
-            "name": "بازیکن جدید",
-            "partner": None,
-            "location": "مرکز شهر",
-            "traits": {"charisma": 5, "intelligence": 5, "strength": 5},
-            "money": 1000,
-            "xp": 0,
-            "level": 1,
-            "inventory": [],
-            "age_confirmed": False,
-            "energy": 100,
-            "happiness": 50
-        }
-        save_json('data/players.json', players)
-    return players[str(user_id)]
+    return players[uid]
 
 def check_level_up(player):
     xp = player.get("xp", 0)
     level = player.get("level", 1)
-    xp_needed = level * 100
-    
-    leveled_up = False
-    
-    while xp >= xp_needed:
+    if xp >= level * 100:
         player["level"] = level + 1
-        player["xp"] = xp - xp_needed
-        
-        # Level up bonuses
+        player["xp"] = 0
         player["skill_points"] = player.get("skill_points", 0) + 2
-        player["energy"] = 100  # Full energy restore
-        player["happiness"] = min(100, player.get("happiness", 50) + 10)
-        
-        # Update for next level check
-        level = player["level"]
-        xp = player["xp"]
-        xp_needed = level * 100
-        leveled_up = True
-    
-    return leveled_up
+        return True
+    return False
+
+def pick_random_partner(user_id):
+    """Pick a random partner from available users"""
+    players = load_json('data/players.json')
+    available = []
+
+    for uid, player in players.items():
+        if (uid != user_id and 
+            player.get('approved') and 
+            not player.get('partner')):
+            available.append({
+                'id': uid,
+                'name': player.get('name', 'نامشخص'),
+                'age': player.get('age', 'نامشخص'),
+                'bio': player.get('bio', 'بدون توضیحات')
+            })
+
+    return choice(available) if available else None
+
+def add_xp(player, amount):
+    """Add XP to player and check for level up"""
+    player["xp"] = player.get("xp", 0) + amount
+    if check_level_up(player):
+        return True
+    return False

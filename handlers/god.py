@@ -58,8 +58,8 @@ async def god_player_management(update: Update, context: ContextTypes.DEFAULT_TY
         return
     
     keyboard = [
-        [KeyboardButton("👥 لیست بازیکنان"), KeyboardButton("🔍 جستجوی بازیکن")],
-        [KeyboardButton("💰 تغییر پول"), KeyboardButton("⭐ تغییر XP")],
+        [KeyboardButton("👥 لیست بازیکنان"), KeyboardButton("🔍 درخواست‌های تأیید")],
+        [KeyboardButton("💰 تغییر پول"), KeyboardButton("⭐ تغییر سطح")],
         [KeyboardButton("🚫 مسدود کردن"), KeyboardButton("✅ رفع مسدودیت")],
         [KeyboardButton("🗑️ حذف بازیکن"), KeyboardButton("👑 بازگشت به حالت خدا")]
     ]
@@ -67,11 +67,14 @@ async def god_player_management(update: Update, context: ContextTypes.DEFAULT_TY
     
     players = load_json('data/players.json')
     total_players = len(players)
+    approved_players = sum(1 for p in players.values() if p.get('approved'))
+    waiting_approval = sum(1 for p in players.values() if p.get('waiting_approval'))
     
     await update.message.reply_text(
         f"👑 مدیریت بازیکنان\n\n"
-        f"👥 تعداد کل بازیکنان: {total_players}\n"
-        f"📊 بازیکنان فعال: {total_players}\n\n"
+        f"👥 تعداد کل: {total_players}\n"
+        f"✅ تأیید شده: {approved_players}\n"
+        f"🕐 در انتظار تأیید: {waiting_approval}\n\n"
         "برای مدیریت بازیکن خاص، آیدی تلگرام او را ارسال کنید.",
         reply_markup=reply_markup
     )
