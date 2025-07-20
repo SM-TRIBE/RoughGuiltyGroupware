@@ -2,13 +2,12 @@
 import logging
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from config import BOT_TOKEN
-from utils.tools import ensure_player_exists
+from utils.tools import load_json, save_json
 from handlers import economy, leveling, zones, adult_scene, shop, marriage, leaderboard
 
 logging.basicConfig(level=logging.INFO)
 
 async def start(update, context):
-    from utils.tools import load_json, save_json
     user = update.effective_user
     uid = str(user.id)
     players = load_json("data/players.json")
@@ -28,14 +27,12 @@ async def start(update, context):
     await update.message.reply_text(f"🎮 به دنیای آینده خوش آمدی، {user.first_name}! از /city و /shop دیدن کن.")
 
 async def confirm_age(update, context):
-    from utils.tools import load_json, save_json
     uid = str(update.effective_user.id)
     players = load_json("data/players.json")
     players[uid]['age_confirmed'] = True
     save_json("data/players.json", players)
     await update.message.reply_text("✅ تأیید سنی انجام شد. اکنون به بخش 🔞 دسترسی دارید.")
 
-# === راه‌اندازی ربات ===
 app = Application.builder().token(BOT_TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))

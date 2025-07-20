@@ -1,0 +1,5 @@
+[
+  {"id": "neon_cafe", "name": "کافه نئون", "charisma_bonus": 2, "desc": "جایی برای ملاقات چهره‌های مرموز."},
+  {"id": "meta_club", "name": "کلوب متاورسی", "charisma_bonus": 3, "desc": "جایی برای رقص نور و آشنایی جدید."},
+  {"id": "dream_chamber", "name": "اتاق رؤیا", "charisma_bonus": 5, "desc": "جایی برای ارتباطات روحی و جسمی."}
+]

@@ -1,0 +1,5 @@
+[
+  {"id": "rose", "name": "رز قرمز", "cost": 150, "effect": "+1 charisma"},
+  {"id": "perfume", "name": "عطر فریبنده", "cost": 300, "effect": "+2 charisma"},
+  {"id": "diamond", "name": "الماس شب", "cost": 1000, "effect": "+5 affection"}
+]

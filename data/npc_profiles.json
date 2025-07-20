@@ -1,0 +1,13 @@
+[
+  {
+    "id": "sara",
+    "name": "سارا",
+    "traits": {"intelligence": 7, "affection": 0},
+    "preferred_items": ["rose", "diamond"],
+    "dialogue": [
+      "سلام... تو این اطراف غریبه‌ای؟",
+      "چطور باهام صحبت می‌کنی... جذابیتت رو حس می‌کنم."
+    ],
+    "romance_threshold": 10
+  }
+]
