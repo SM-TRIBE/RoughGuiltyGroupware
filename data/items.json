@@ -1,73 +1,37 @@
-
 [
   {
-    "id": "rose",
-    "name": "گل رز قرمز",
-    "cost": 150,
-    "effect": "+2 charisma",
-    "description": "گل زیبا برای ابراز عشق"
+    "id": "1",
+    "name": "گل رز 🌹",
+    "cost": 50,
+    "effect": "charisma+1",
+    "description": "جذابیت شما را افزایش می‌دهد"
   },
   {
-    "id": "perfume",
-    "name": "عطر زعفرانی",
-    "cost": 300,
-    "effect": "+3 charisma",
-    "description": "عطر لوکس با رایحه زعفران"
-  },
-  {
-    "id": "diamond",
-    "name": "الماس شب",
-    "cost": 1000,
-    "effect": "+5 charisma",
-    "description": "جواهری گرانبها"
-  },
-  {
-    "id": "book",
-    "name": "کتاب شاهنامه",
-    "cost": 200,
-    "effect": "+3 intelligence",
-    "description": "شاهکار فردوسی"
-  },
-  {
-    "id": "energy_drink",
-    "name": "نوشیدنی انرژی‌زا",
+    "id": "2",
+    "name": "کتاب 📚",
     "cost": 100,
-    "effect": "+30 energy",
-    "description": "برای بازیابی انرژی"
+    "effect": "intelligence+1",
+    "description": "هوش شما را بالا می‌برد"
   },
   {
-    "id": "tea",
-    "name": "چای مرغوب لاهیجان",
-    "cost": 80,
-    "effect": "+15 happiness",
-    "description": "چای اصیل ایرانی"
+    "id": "3",
+    "name": "دمبل 🏋️",
+    "cost": 150,
+    "effect": "strength+1",
+    "description": "قدرت بدنی شما را افزایش می‌دهد"
   },
   {
-    "id": "carpet",
-    "name": "فرش اصفهان",
-    "cost": 2000,
-    "effect": "+10 charisma, +5 culture",
-    "description": "فرش دستباف زیبا"
+    "id": "4",
+    "name": "کفش ورزشی 👟",
+    "cost": 200,
+    "effect": "agility+1",
+    "description": "چابکی شما را بهبود می‌بخشد"
   },
   {
-    "id": "saffron",
-    "name": "زعفران مشهد",
+    "id": "5",
+    "name": "سکه طلا 🪙",
     "cost": 500,
-    "effect": "+5 charisma, +10 happiness",
-    "description": "طلای سرخ ایران"
-  },
-  {
-    "id": "protein",
-    "name": "پودر پروتئین",
-    "cost": 400,
-    "effect": "+3 strength",
-    "description": "برای تقویت عضلات"
-  },
-  {
-    "id": "meditation_book",
-    "name": "کتاب مراقبه",
-    "cost": 250,
-    "effect": "+20 mental_health",
-    "description": "برای آرامش ذهن"
+    "effect": "luck+1",
+    "description": "شانس شما را بالا می‌برد"
   }
 ]

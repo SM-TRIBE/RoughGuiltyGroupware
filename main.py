@@ -15,35 +15,8 @@ logging.basicConfig(
 )
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    p = init_player(user)
-    
-    main_keyboard = [
-        [KeyboardButton("👤 پروفایل"), KeyboardButton("🗺️ سفر")],
-        [KeyboardButton("🛍️ فروشگاه"), KeyboardButton("💼 کار")],
-        [KeyboardButton("💬 کافه گپ"), KeyboardButton("🏨 هتل")],
-        [KeyboardButton("💍 ازدواج"), KeyboardButton("🏆 رتبه‌بندی")],
-        [KeyboardButton("⚔️ ماموریت‌ها"), KeyboardButton("🏰 سیاه‌چال‌ها")],
-        [KeyboardButton("🎒 کیف"), KeyboardButton("📈 مهارت‌ها")],
-        [KeyboardButton("🏅 دستاوردها"), KeyboardButton("💰 اقتصاد")],
-        [KeyboardButton("👑 حالت خدا"), KeyboardButton("⚙️ تنظیمات")]
-    ]
-    reply_markup = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
-    
-    await update.message.reply_text(
-        f"🌟 سلام {p['name']} عزیز!\n"
-        f"به بازی زندگی مجازی ایرانی خوش آمدید!\n\n"
-        f"🎮 این یک بازی نقش‌آفرینی کامل است که در آن می‌توانید:\n"
-        f"• به مکان‌های مختلف سفر کنید\n"
-        f"• با افراد مختلف آشنا شوید\n"
-        f"• ازدواج کنید و خانواده تشکیل دهید\n"
-        f"• کار کنید و پول درآورید\n"
-        f"• در کافه گپ با دیگران صحبت کنید\n"
-        f"• در هتل استراحت کنید\n"
-        f"• مهارت‌هایتان را ارتقاء دهید\n\n"
-        f"برای شروع، لطفاً سن خود را وارد کنید:",
-        reply_markup=reply_markup
-    )
+    # Use the proper registration system from start.py
+    await start.start(update, context)
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
@@ -158,8 +131,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await rpg.skills_menu(update, context)
     elif text.startswith("💪 ارتقاء") or text.startswith("🧠 ارتقاء") or text.startswith("😎 ارتقاء") or text.startswith("🏃 ارتقاء") or text.startswith("🍀 ارتقاء"):
         # Handle skill upgrades
-        skill_name = text.split()[1]
-        await handle_skill_upgrade(update, context, skill_name)
+        await handle_skill_upgrade(update, context)
     
     # Achievement navigation
     elif text == "🏆 دستاوردهای من":
@@ -249,7 +221,7 @@ async def handle_skill_upgrade(update: Update, context: ContextTypes.DEFAULT_TYP
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
     
-    # Commands
+    # Commands  
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("profile", profile.profile))
     app.add_handler(CommandHandler("marry", marriage.marry))
@@ -264,8 +236,9 @@ def main():
     app.add_handler(CommandHandler("battle", rpg.battle_system))
     app.add_handler(CommandHandler("achievements", achievements.achievements_menu))
     
-    # Callback query handler for approval system
-    app.add_handler(CallbackQueryHandler(start.approve_user))
+    # Callback query handlers
+    app.add_handler(CallbackQueryHandler(start.approve_user, pattern="^(approve|reject|details)_"))
+    app.add_handler(CallbackQueryHandler(shop.buy_item, pattern="^buy_"))
     
     # Message handler for keyboard navigation
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

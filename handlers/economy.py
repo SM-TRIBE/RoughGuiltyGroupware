@@ -10,8 +10,32 @@ async def give_daily(update: Update, context: ContextTypes.DEFAULT_TYPE):
     players = load_json("data/players.json")
     uid = str(user.id)
     
-    if uid not in players:
-        await update.message.reply_text("لطفاً ابتدا /start کنید.")
+    if uid not in players or not players[uid].get("approved"):
+        await update.message.reply_text("ابتدا باید ثبت‌نام کنید!")
+        return
+    
+    p = players[uid]
+    today = datetime.now().strftime("%Y-%m-%d")
+    last_daily = p.get("last_daily")
+    
+    if last_daily == today:
+        await update.message.reply_text("شما امروز جایزه روزانه خود را دریافت کرده‌اید!")
+        return
+    
+    # Give daily reward
+    daily_amount = 500 + (p.get("level", 1) * 50)  # Base + level bonus
+    p["money"] = p.get("money", 0) + daily_amount
+    p["last_daily"] = today
+    
+    # Save data
+    players[uid] = p
+    save_json("data/players.json", players)
+    
+    await update.message.reply_text(
+        f"🎁 جایزه روزانه!\n"
+        f"💰 {daily_amount:,} تومان دریافت کردید!\n"
+        f"💳 موجودی جدید: {p['money']:,} تومان"
+    )te.message.reply_text("لطفاً ابتدا /start کنید.")
         return
     
     p = players[uid]
