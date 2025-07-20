@@ -50,6 +50,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await chat.receive_chat_message(update, context)
         return
     
+    # Handle god broadcast input
+    if await god.handle_broadcast_input(update, context):
+        return
+    
     # Main menu navigation
     if text == "👤 پروفایل":
         await profile.profile(update, context)
@@ -197,7 +201,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # God mode navigation  
     elif text == "📢 پیام عمومی":
-        await god.god_broadcast(update, context)
+        context.user_data['waiting_for_broadcast'] = True
+        await update.message.reply_text(
+            "📢 پیام خدایی\n\n"
+            "لطفاً پیامی که می‌خواهید به همه بازیکنان ارسال شود را بنویسید:"
+        )
     elif text == "👑 مدیریت بازیکنان":
         await god.god_player_management(update, context)
     elif text == "💰 اقتصاد کل سرور":

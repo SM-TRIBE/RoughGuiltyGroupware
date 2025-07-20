@@ -20,7 +20,8 @@ async def god_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [KeyboardButton("📊 آمار خدایی"), KeyboardButton("🎁 هدایای الهی")],
         [KeyboardButton("⚡ ریست کامل"), KeyboardButton("🔮 پیش‌بینی آینده")],
         [KeyboardButton("👁️ نظارت کامل"), KeyboardButton("📜 تاریخ اعمال")],
-        [KeyboardButton("🌟 ایجاد معجزه"), KeyboardButton("🏠 خروج از حالت خدا")]
+        [KeyboardButton("🌟 ایجاد معجزه"), KeyboardButton("📢 پیام عمومی")],
+        [KeyboardButton("🏠 خروج از حالت خدا")]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     
@@ -78,6 +79,44 @@ async def init_god_player(user_id: int):
             }
         })
         db.save_player(user_id, god_player)
+
+async def god_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Send broadcast message to all players"""
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("🚫 فقط خدا می‌تواند پیام عمومی ارسال کند!")
+        return
+
+    if not context.args:
+        await update.message.reply_text("📢 استفاده: /broadcast پیام شما\nیا از دکمه 'پیام عمومی' استفاده کنید و پیام خود را بنویسید.")
+        context.user_data['waiting_for_broadcast'] = True
+        return
+
+    message = " ".join(context.args)
+    players = db.get_all_players()
+    success_count = 0
+
+    broadcast_text = f"📢 پیام خداوند:\n\n{message}\n\n🔱 این پیام از طرف خالق این دنیا ارسال شده است!"
+
+    for uid, player in players.items():
+        if int(uid) != ADMIN_ID:  # Don't send to god
+            try:
+                await context.bot.send_message(
+                    chat_id=int(uid),
+                    text=broadcast_text
+                )
+                success_count += 1
+            except Exception as e:
+                print(f"Failed to send broadcast to {uid}: {e}")
+                continue
+
+    await update.message.reply_text(
+        f"📢 پیام خدایی با موفقیت ارسال شد!\n\n"
+        f"👥 تعداد دریافت‌کنندگان: {success_count}\n"
+        f"⚡ کلمات شما به گوش همه مخلوقات رسید!"
+    )
+    
+    # Log broadcast
+    db.log_god_action("broadcast_sent", action_data={"message": message, "recipients": success_count}, description=f"God sent broadcast to {success_count} players")
 
 async def god_powers(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
@@ -168,10 +207,7 @@ async def god_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not stats:
         await update.message.reply_text("📊 هنوز هیچ مخلوقی خلق نشده!")
         return
-    # handlers/god.py
-def god_broadcast(update, context):
-    # Your broadcast logic here
-    pass
+    
     # Get additional detailed stats
     players = db.get_all_players()
     if players:
@@ -374,7 +410,6 @@ async def god_miracle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     db.log_god_action("miracle_performed", action_data={"recipients": len(lucky_players)}, description="God performed miracle")
 
-# Add handlers for all god powers
 async def handle_god_power(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
@@ -396,9 +431,44 @@ async def handle_god_power(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(power_messages[text])
         db.log_god_action("power_used", description=f"God used power: {text}")
 
+# Handle broadcast message input
+async def handle_broadcast_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID or not context.user_data.get('waiting_for_broadcast'):
+        return False
+    
+    message = update.message.text
+    context.user_data['waiting_for_broadcast'] = False
+    
+    players = db.get_all_players()
+    success_count = 0
+
+    broadcast_text = f"📢 پیام خداوند:\n\n{message}\n\n🔱 این پیام از طرف خالق این دنیا ارسال شده است!"
+
+    for uid, player in players.items():
+        if int(uid) != ADMIN_ID:  # Don't send to god
+            try:
+                await context.bot.send_message(
+                    chat_id=int(uid),
+                    text=broadcast_text
+                )
+                success_count += 1
+            except Exception as e:
+                print(f"Failed to send broadcast to {uid}: {e}")
+                continue
+
+    await update.message.reply_text(
+        f"📢 پیام خدایی با موفقیت ارسال شد!\n\n"
+        f"👥 تعداد دریافت‌کنندگان: {success_count}\n"
+        f"⚡ کلمات شما به گوش همه مخلوقات رسید!"
+    )
+    
+    # Log broadcast
+    db.log_god_action("broadcast_sent", action_data={"message": message, "recipients": success_count}, description=f"God sent broadcast to {success_count} players")
+    return True
+
 # Register all god functions
 __all__ = [
     'god_menu', 'god_powers', 'god_player_management', 'god_economy', 
     'god_stats', 'god_gift', 'god_reset_server', 'handle_god_commands',
-    'god_miracle', 'handle_god_power'
+    'god_miracle', 'handle_god_power', 'god_broadcast', 'handle_broadcast_input'
 ]
