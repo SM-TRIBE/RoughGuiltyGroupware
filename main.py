@@ -4,7 +4,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from config import BOT_TOKEN
 from utils.tools import ensure_player_exists
 from handlers import economy, leveling, zones, adult_scene, shop, marriage, leaderboard
-
+from utils.tools import ensure_player_exists
 logging.basicConfig(level=logging.INFO)
 
 async def start(update, context):

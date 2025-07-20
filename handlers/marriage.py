@@ -6,7 +6,9 @@ from utils.tools import load_json, save_json
 from handlers import economy, leveling, zones, adult_scene, shop, marriage, leaderboard
 
 logging.basicConfig(level=logging.INFO)
-
+def marry(update, context):
+    from handlers import some_needed_handler  # import it here instead
+    # Your marriage logic goes here
 async def start(update, context):
     user = update.effective_user
     uid = str(user.id)
