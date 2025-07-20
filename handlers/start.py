@@ -286,6 +286,9 @@ async def show_main_square(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if level >= 3:
         main_keyboard.append([KeyboardButton("💍 ازدواج"), KeyboardButton("🏰 سیاه‌چال‌ها")])
         
+    if level >= 4:
+        main_keyboard.append([KeyboardButton("🎮 بازی‌ها"), KeyboardButton("👥 اجتماعی")])
+        
     if level >= 5:
         main_keyboard.append([KeyboardButton("🎒 کیف"), KeyboardButton("📈 مهارت‌ها")])
         

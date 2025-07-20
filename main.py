@@ -7,7 +7,7 @@ from utils.tools import load_json, save_json, init_player
 
 # Import all handlers
 from handlers import start, profile, admin, zones, shop, marriage, leaderboard, economy
-from handlers import chat, hotel, jobs, rpg, god, achievements
+from handlers import chat, hotel, jobs, rpg, god, achievements, minigames, social
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -53,7 +53,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Main menu navigation
     if text == "👤 پروفایل":
         await profile.profile(update, context)
-    elif text == "🗺️ سفر":
+    elif text == "🗺️ اکتشاف" or text == "🗺️ سفر":
         await zones.travel(update, context)
     elif text == "🛍️ فروشگاه":
         await shop.shop(update, context)
@@ -68,7 +68,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text == "🏆 رتبه‌بندی":
         await leaderboard.leaderboard(update, context)
     elif text == "💰 اقتصاد":
-        await economy.give_daily(update, context)
+        await economy.economy_menu(update, context)
     elif text == "⚔️ ماموریت‌ها":
         await rpg.quest_menu(update, context)
     elif text == "🏰 سیاه‌چال‌ها":
@@ -79,6 +79,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await rpg.skills_menu(update, context)
     elif text == "🏅 دستاوردها":
         await achievements.achievements_menu(update, context)
+    elif text == "🎮 بازی‌ها":
+        await minigames.minigames_menu(update, context)
+    elif text == "👥 اجتماعی":
+        await social.social_menu(update, context)
     elif text == "👑 حالت خدا":
         await god.god_menu(update, context)
     
@@ -138,6 +142,54 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await achievements.my_achievements(update, context)
     elif text == "📜 همه دستاوردها":
         await achievements.all_achievements(update, context)
+    
+    # Economy menu navigation
+    elif text == "🎁 جایزه روزانه":
+        await economy.give_daily(update, context)
+    elif text == "📊 آمار مالی":
+        await economy.financial_stats(update, context)
+    elif text == "🎰 شانس‌آزمایی":
+        await economy.gambling(update, context)
+    elif text == "💸 انتقال پول":
+        await economy.transfer_money(update, context)
+    elif text == "💳 وام‌گیری":
+        await economy.loan_system(update, context)
+    elif text == "💎 سرمایه‌گذاری":
+        await economy.investment_system(update, context)
+    elif text.startswith("🎰"):
+        await economy.play_gamble(update, context)
+    
+    # Minigames navigation
+    elif text == "🎲 تاس‌بازی":
+        await minigames.dice_game(update, context)
+    elif text == "🃏 بلک‌جک":
+        await minigames.blackjack_game(update, context)
+    elif text == "🧩 حدس عدد":
+        await minigames.number_guess_game(update, context)
+    elif text == "🎮 بازی حافظه":
+        await minigames.memory_game(update, context)
+    elif text == "🎯 تیراندازی":
+        await minigames.shooting_game(update, context)
+    elif text.startswith("🎲 تاس"):
+        await minigames.play_dice(update, context)
+    
+    # Social navigation
+    elif text == "👥 لیست دوستان":
+        await social.friends_list(update, context)
+    elif text == "🔍 جستجوی کاربر":
+        await social.search_users(update, context)
+    elif text == "💌 درخواست دوستی":
+        await social.send_friend_request(update, context)
+    elif text == "🎁 هدیه به دوست":
+        await social.gift_to_friend(update, context)
+    elif text == "📱 چت خصوصی":
+        await social.private_chat(update, context)
+    elif text == "📊 فعالیت‌های اجتماعی":
+        await social.social_activities(update, context)
+    
+    # Handle friend request input
+    elif context.user_data.get('waiting_for_friend_request'):
+        await social.handle_friend_request_input(update, context)
     
     # God mode navigation
     elif text == "📢 پیام عمومی":
@@ -235,6 +287,7 @@ def main():
     app.add_handler(CommandHandler("quest", rpg.quest_menu))
     app.add_handler(CommandHandler("battle", rpg.battle_system))
     app.add_handler(CommandHandler("achievements", achievements.achievements_menu))
+    app.add_handler(CommandHandler("transfer", economy.handle_transfer))
     
     # Callback query handlers
     app.add_handler(CallbackQueryHandler(start.approve_user, pattern="^(approve|reject|details)_"))

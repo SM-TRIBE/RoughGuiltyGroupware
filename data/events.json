@@ -1,0 +1,72 @@
+
+<line_number>1</line_number>
+
+{
+  "random_events": [
+    {
+      "id": "lucky_find",
+      "name": "یافتن پول",
+      "description": "شما در راه پولی پیدا کردید!",
+      "probability": 15,
+      "effects": {
+        "money": [100, 500]
+      }
+    },
+    {
+      "id": "helpful_stranger",
+      "name": "کمک غریبه",
+      "description": "غریبه‌ای به شما کمک کرد!",
+      "probability": 10,
+      "effects": {
+        "charisma": 1,
+        "happiness": 10
+      }
+    },
+    {
+      "id": "lost_wallet",
+      "name": "گم کردن کیف پول",
+      "description": "متأسفانه کیف پولتان گم شد...",
+      "probability": 5,
+      "effects": {
+        "money": [-200, -100]
+      }
+    },
+    {
+      "id": "skill_book",
+      "name": "پیدا کردن کتاب",
+      "description": "کتاب جالبی پیدا کردید!",
+      "probability": 8,
+      "effects": {
+        "intelligence": 1,
+        "xp": 20
+      }
+    },
+    {
+      "id": "gym_motivation",
+      "name": "انگیزه ورزشی",
+      "description": "احساس انگیزه برای ورزش کردید!",
+      "probability": 12,
+      "effects": {
+        "strength": 1,
+        "energy": 15
+      }
+    }
+  ],
+  "special_events": [
+    {
+      "id": "treasure_hunt",
+      "name": "گنج‌یابی",
+      "description": "رویداد ویژه گنج‌یابی!",
+      "duration_hours": 24,
+      "requirements": {
+        "min_level": 5
+      },
+      "rewards": {
+        "money": [1000, 5000],
+        "xp": 100,
+        "special_item": "گنج باستانی"
+      }
+    }
+  ]
+}
+
