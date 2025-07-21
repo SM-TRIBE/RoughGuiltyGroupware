@@ -3,7 +3,12 @@ services:
     name: roughguiltybot
     runtime: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "bash start.sh"
+    # The start command is now directly in the YAML file
+    startCommand: "python3 main.py"
     envVars:
       - key: BOT_TOKEN
+        sync: false # Prevents storing the secret in the file
       - key: ADMIN_ID
+        sync: false # Prevents storing the secret in the file
+      - key: DATABASE_URL # Add this if you are using a database
+        sync: false
