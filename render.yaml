@@ -2,10 +2,8 @@ services:
   - type: worker
     name: roughguiltybot
     runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: bash start.sh
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "bash start.sh"
     envVars:
       - key: BOT_TOKEN
-        sync: false
       - key: ADMIN_ID
-        sync: false
