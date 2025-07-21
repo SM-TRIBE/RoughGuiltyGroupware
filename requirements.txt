@@ -1,2 +1,3 @@
 python-telegram-bot==20.7  # For Telegram bot functionality
 gunicorn==21.2.0           # WSGI server for Render (if running as a web process)
+pip freeze > requirements.txt
