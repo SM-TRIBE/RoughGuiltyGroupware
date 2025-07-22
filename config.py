@@ -1,14 +1,14 @@
-# config.py
-BOT_TOKEN = "7786508141:AAETbqJgSE7DI8QuCs7KT5GYx9ZqtI54W2c"
-ADMIN_ID = 6246979600  # تلگرام آیدی خودت به عنوان خدا
-AGE_MIN = 18 
-START_BALANCE = 1000
-XP_PER_DATE = 50
-XP_LEVEL_UP = 100
-DAILY_REWARD = 500
+import os
+from dotenv import load_dotenv
 
-# God Mode Settings
-GOD_UNLIMITED_MONEY = 999999999999
-GOD_MAX_LEVEL = 999
-GOD_MAX_STATS = 100
-GOD_INSTANT_ACTIONS = True
+load_dotenv()
+
+BOT_TOKEN = os.getenv('7786508141:AAETbqJgSE7DI8QuCs7KT5GYx9ZqtI54W2c')
+ADMIN_ID = os.getenv('6246979600')
+WEB_APP_URL = os.getenv('https://roughguiltygroupware-2.onrender.com')
+DATABASE_URL = os.getenv('postgres://avnadmin:AVNS_OosZVVpJZnW9bFAIE3i@infer-yolpak.f.aivencloud.com:23638/defaultdb?sslmode=require')
+
+# --- Game Settings ---
+STARTING_MONEY = 100
+STARTING_LOCATION = "میدان اصلی"
+XP_PER_LEVEL = 100
