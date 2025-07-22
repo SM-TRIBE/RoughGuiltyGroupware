@@ -15,4 +15,3 @@ async def setup_scheduler(bot):
     scheduler.add_job(grant_daily_rewards, 'interval', hours=6, args=(bot,))
     scheduler.start()
     print("Scheduler started.")
-```python
