@@ -1,14 +1,17 @@
-# render.yaml (Updated and Simplified)
+# render.yaml (Docker Version)
 
 services:
   - type: web
     name: shahrestan-e-vahshi
-    env: python
-    # We are back to the standard build command.
-    # The pre-installed Rust in Render's environment will handle the rest.
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app --worker-class uvicorn.workers.UvicornWorker"
+    # Tell Render to use Docker instead of the native Python environment
+    env: docker
     healthCheckPath: /
+    # The following settings are auto-detected from the Dockerfile
+    # but can be specified for clarity if needed.
+    # dockerfilePath: ./Dockerfile
+    # dockerCommand: gunicorn app:app --bind 0.0.0.0:10000 --worker-class uvicorn.workers.UvicornWorker
+    
+    # Environment variables remain the same
     envVars:
       - key: DATABASE_URL
         fromDatabase:
