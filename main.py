@@ -7,7 +7,8 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from db.database import init_db
+# main.py - NEW
+from db.database import setup_database
 from handlers import (
     achievements, admin, adult_scene, chat, choices, dating, economy,
     explore, god, hotel, jobs, leaderboard, leveling, marriage,
@@ -52,7 +53,7 @@ async def on_startup(dispatcher: Dispatcher):
     logging.warning(f"Webhook set to {WEBHOOK_URL}")
 
     logging.warning("Initializing database...")
-    await init_db()
+  await setup_database()
     logging.warning("Database initialized.")
 
     logging.warning("Setting up scheduler...")
