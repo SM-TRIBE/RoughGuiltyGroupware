@@ -1,11 +1,12 @@
-# This file tells Render how to deploy the bot.
+# render.yaml (Updated and Simplified)
 
 services:
   - type: web
     name: shahrestan-e-vahshi
     env: python
-    # We now tell Render to run our custom build script instead of the default command.
-    buildCommand: "./render-build.sh"
+    # We are back to the standard build command.
+    # The pre-installed Rust in Render's environment will handle the rest.
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app --worker-class uvicorn.workers.UvicornWorker"
     healthCheckPath: /
     envVars:
