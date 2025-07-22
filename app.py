@@ -1,22 +1,17 @@
-# Main application file. Initializes the bot, web server, and handlers.
-import asyncio
 import logging
-import os
-
 from flask import Flask, request
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
-
 from dotenv import load_dotenv
 
-# --- Local Imports ---
 import config
 from db import database
 from handlers import (
     start_handler, profile_handler, explore_handler,
     jobs_handler, social_handler, admin_handler,
-    shop_handler, inventory_handler
+    shop_handler, inventory_handler, leaderboard_handler,
+    player_interaction_handler
 )
 from utils.scheduler import setup_scheduler
 
@@ -35,22 +30,18 @@ WEBHOOK_URL = f"{config.WEB_APP_URL}{WEBHOOK_PATH}"
 
 @app.route(WEBHOOK_PATH, methods=['POST'])
 async def webhook_endpoint():
-    """Receives updates from Telegram."""
     telegram_update = types.Update.model_validate_json(
-        request.get_data().decode('utf-8'),
-        context={"bot": bot}
+        request.get_data().decode('utf-8'), context={"bot": bot}
     )
     await dp.feed_update(bot=bot, update=telegram_update)
     return 'ok', 200
 
 @app.route('/')
 def health_check():
-    """A simple endpoint to confirm the web service is live."""
     return "<h1>شهرستان وحشی زنده است!</h1>", 200
 
 # --- Bot Lifecycle ---
 async def on_startup(dispatcher: Dispatcher):
-    """Actions on bot startup."""
     logging.info("Connecting to database...")
     await database.connect()
     logging.info("Setting up scheduler...")
@@ -60,14 +51,12 @@ async def on_startup(dispatcher: Dispatcher):
     logging.info(f"Bot started! Webhook is set to {WEBHOOK_URL}")
 
 async def on_shutdown(dispatcher: Dispatcher):
-    """Actions on bot shutdown."""
     logging.warning('Shutting down...')
     await database.disconnect()
     await bot.delete_webhook()
     logging.warning('Bot stopped.')
 
 def main():
-    """Configures and includes all routers."""
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 
@@ -80,15 +69,12 @@ def main():
         jobs_handler.router,
         social_handler.router,
         shop_handler.router,
-        inventory_handler.router
+        inventory_handler.router,
+        leaderboard_handler.router,
+        player_interaction_handler.router
     )
     logging.info("All routers included.")
 
 if __name__ == '__main__':
     main()
-    # On Render, Gunicorn runs the 'app' object directly.
-    # This block is for local development using polling.
-    logging.info("Starting bot in polling mode for local development.")
-    # To run locally, comment out the webhook lines in on_startup and run this file.
-    # dp.run_polling(bot)
 ```python
