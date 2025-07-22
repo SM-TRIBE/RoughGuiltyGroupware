@@ -90,4 +90,4 @@ async def process_proposal_response(callback_query: types.CallbackQuery):
         await bot.send_message(proposer_id, f"😔 {player['name']} پیشنهاد پیمان تو را رد کرد.")
 
 # Divorce logic and other handlers remain similar
-```python
+
