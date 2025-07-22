@@ -25,3 +25,4 @@ LOCATIONS = {
         "events": ["commission_work", "nothing"]
     }
 }
+```python
