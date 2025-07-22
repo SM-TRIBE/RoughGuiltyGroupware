@@ -140,4 +140,4 @@ async def process_bio_edit(message: types.Message, state: FSMContext):
     await state.clear()
     await message.answer("شرح حال تو با موفقیت ثبت شد.")
     await my_profile(message, state)
-```python
+
