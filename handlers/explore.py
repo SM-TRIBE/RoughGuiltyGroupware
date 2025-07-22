@@ -1,22 +1,9 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes
-from utils.tools import load_json, save_json
-from random import randint
+from aiogram import Router, types
+from aiogram.filters import Text
 
-LOCATIONS = ["کافهٔ فضایی", "بار زیرزمینی", "پارک نئونی"]
+router = Router()
 
-async def explore(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    players = load_json('data/players.json')
-    uid = str(user.id)
-    p = players[uid]
-    loc = choice(LOCATIONS)
-    p['location'] = loc
-    save_json('data/players.json', players)
-    await update.message.reply_text(
-        f"🏙️ شما به {loc} رفتید. اتفاقی در راه افتاد: ",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("همراه شو", callback_data='meet'),
-             InlineKeyboardButton("برو دنبال کارت", callback_data='skip')]
-        ])
-    )
+@router.message(Text(equals="🗺️ گشت و گذار"))
+async def explore_menu(message: types.Message):
+    await message.answer("به کدام سمت می‌خواهی بروی؟ هر گوشه این شهر داستانی دارد...")
+```python
