@@ -71,4 +71,4 @@ async def work_command(message: types.Message):
     )
     await message.answer(f"سخت کار کردی و {payout} سکه نقره و {xp_gain} تجربه به دست آوردی.")
     # Add level up check here
-```python
+
