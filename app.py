@@ -1,3 +1,4 @@
+# Main application file. Initializes the bot, web server, and handlers.
 import asyncio
 import logging
 import os
@@ -14,28 +15,27 @@ import config
 from db import database
 from handlers import (
     start_handler, profile_handler, explore_handler,
-    jobs_handler, social_handler, admin_handler
+    jobs_handler, social_handler, admin_handler,
+    shop_handler, inventory_handler
 )
-from utils import keyboards
+from utils.scheduler import setup_scheduler
 
 # --- Configuration & Initialization ---
 load_dotenv()
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 bot = Bot(token=config.BOT_TOKEN, parse_mode=ParseMode.HTML)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
 # --- Flask App for Webhook ---
-# Gunicorn will run this Flask app.
 app = Flask(__name__)
-
 WEBHOOK_PATH = f"/bot/{config.BOT_TOKEN}"
 WEBHOOK_URL = f"{config.WEB_APP_URL}{WEBHOOK_PATH}"
 
 @app.route(WEBHOOK_PATH, methods=['POST'])
 async def webhook_endpoint():
-    """Receives updates from Telegram and feeds them to the dispatcher."""
+    """Receives updates from Telegram."""
     telegram_update = types.Update.model_validate_json(
         request.get_data().decode('utf-8'),
         context={"bot": bot}
@@ -51,11 +51,13 @@ def health_check():
 # --- Bot Lifecycle ---
 async def on_startup(dispatcher: Dispatcher):
     """Actions on bot startup."""
-    logging.warning("Connecting to database...")
+    logging.info("Connecting to database...")
     await database.connect()
-    logging.warning("Setting webhook...")
+    logging.info("Setting up scheduler...")
+    await setup_scheduler(bot)
+    logging.info("Setting webhook...")
     await bot.set_webhook(url=WEBHOOK_URL)
-    logging.info(f"Bot started! Webhook set to {WEBHOOK_URL}")
+    logging.info(f"Bot started! Webhook is set to {WEBHOOK_URL}")
 
 async def on_shutdown(dispatcher: Dispatcher):
     """Actions on bot shutdown."""
@@ -76,15 +78,17 @@ def main():
         profile_handler.router,
         explore_handler.router,
         jobs_handler.router,
-        social_handler.router
-        # Add other handlers here as they are created
+        social_handler.router,
+        shop_handler.router,
+        inventory_handler.router
     )
     logging.info("All routers included.")
 
 if __name__ == '__main__':
     main()
-    # This block is for local development.
     # On Render, Gunicorn runs the 'app' object directly.
+    # This block is for local development using polling.
     logging.info("Starting bot in polling mode for local development.")
-    dp.run_polling(bot)
+    # To run locally, comment out the webhook lines in on_startup and run this file.
+    # dp.run_polling(bot)
 ```python
