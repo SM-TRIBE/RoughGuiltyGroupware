@@ -44,4 +44,4 @@ async def buy_item(callback_query: types.CallbackQuery):
     )
     await callback_query.answer(f"«{item_name}» را خریدی!", show_alert=True)
     await callback_query.message.delete() # Clean up the shop menu
-```python
+
