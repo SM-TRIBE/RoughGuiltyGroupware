@@ -67,4 +67,4 @@ async def use_item(callback_query: types.CallbackQuery):
     await callback_query.message.delete() # Refresh inventory view
     dummy_message = types.Message(message_id=0, date=datetime.datetime.now(), chat=callback_query.message.chat, from_user=callback_query.from_user)
     await view_inventory(dummy_message)
-```python
+
