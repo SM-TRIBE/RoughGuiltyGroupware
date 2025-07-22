@@ -55,4 +55,4 @@ async def daily_reward(message: types.Message):
     # Check for level up after getting XP
     from .profile_handler import check_for_level_up
     await check_for_level_up(message, await database.get_player(message.from_user.id))
-```python
+
