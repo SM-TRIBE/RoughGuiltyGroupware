@@ -1,6 +1,7 @@
-aiogram
-asyncpg
-Flask
-gunicorn
-apscheduler
-python-dotenv
+aiogram==3.4.1
+asyncpg==0.29.0
+Flask==3.0.3
+gunicorn==22.0.0
+uvicorn==0.29.0
+apscheduler==3.10.4
+python-dotenv==1.0.1
