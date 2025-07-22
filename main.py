@@ -53,10 +53,16 @@ async def on_startup(dispatcher: Dispatcher):
     logging.warning(f"Webhook set to {WEBHOOK_URL}")
 
     logging.warning("Initializing database...")
-  await setup_database()
+    # This line is now correctly indented
+    await setup_database() 
     logging.warning("Database initialized.")
 
     logging.warning("Setting up scheduler...")
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(notifications.check_and_send_notifications, 'interval', minutes=1, args=(bot,))
+    scheduler.start()
+    logging.warning("Scheduler started.")
+    logging.warning("Bot is up and running!")
     scheduler = AsyncIOScheduler()
     # Schedule the notification check to run every minute
     scheduler.add_job(notifications.check_and_send_notifications, 'interval', minutes=1, args=(bot,))
