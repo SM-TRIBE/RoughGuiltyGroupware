@@ -1,6 +1,6 @@
 aiogram
-psycopg2-binary
+asyncpg
 Flask
 gunicorn
 apscheduler
-python-telegram-bot
+python-dotenv
