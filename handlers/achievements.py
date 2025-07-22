@@ -1,7 +1,17 @@
+# handlers/achievements.py (NEW aiogram syntax)
+from aiogram import Router, types
+from aiogram.filters import Command
 
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import ContextTypes
-from utils.tools import load_json, save_json
+# Create a new Router instance for this file
+router = Router()
+
+@router.message(Command("achievements"))
+async def achievements_handler(message: types.Message):
+    user_id = message.from_user.id
+    # ... your logic to get achievements ...
+    await message.answer("Here are your achievements...")
+
+# The router from this file will be imported and included in main.py
 
 ACHIEVEMENTS = [
     {
