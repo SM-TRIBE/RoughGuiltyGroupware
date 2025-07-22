@@ -1,14 +1,23 @@
 services:
   - type: web
-    name: roughguiltybot
-    runtime: python
+    name: shahrestan-e-vahshi
+    env: python
     buildCommand: "pip install -r requirements.txt"
-    # The start command is now directly in the YAML file
-    startCommand: "python3 main.py"
+    startCommand: "gunicorn app:app --worker-class uvicorn.workers.UvicornWorker"
+    healthCheckPath: /
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: shahrestan-db
+          property: connectionString
       - key: BOT_TOKEN
-        sync: false # Prevents storing the secret in the file
-      - key: ADMIN_ID
-        sync: false # Prevents storing the secret in the file
-      - key: DATABASE_URL # Add this if you are using a database
         sync: false
+      - key: ADMIN_ID
+        sync: false
+      - key: WEB_APP_URL
+        sync: false
+
+databases:
+  - name: shahrestan-db
+    databaseName: shahrestan_db
+    user: shahrestan_user
